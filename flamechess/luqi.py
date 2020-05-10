@@ -32,6 +32,13 @@ class State:
     def __repr__(self):
         return ''.join(self.state)
 
+    def __eq__(self, other):
+        if type(other) != State:
+            return False
+        if self.state == other.state:
+            return True
+        return False
+
     def preprocess(self, state: str) -> list:
         x, y = self.reading_size
         state = state.strip()

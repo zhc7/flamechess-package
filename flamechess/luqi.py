@@ -3,14 +3,9 @@ import logging
 import time
 import traceback
 try:
-    from .play import ChessBoard, tpe
+    from .play import ChessBoard, tpe, API_SET, API_GET, nAPI_SET, nAPI_GET
 except ImportError:
-    from play import ChessBoard, tpe
-
-API_GET = 'http://www.eanson.work/ai/status?code={code}'
-API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
-nAPI_GET = 'http://flamechess.cn/js/1/31/fcdbrw.php?id={code}'
-nAPI_SET = 'http://flamechess.cn/js/1/31/fcdbrw.php?i={content}&id={code}'
+    from play import ChessBoard, tpe, API_SET, API_GET, nAPI_SET, nAPI_GET
 DELAY = 0.5
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG,
@@ -99,7 +94,7 @@ class State:
 
 class Board(ChessBoard):
     def __init__(self, config, chess_type, code):
-        super().__init__(code, *tpe(code))
+        super().__init__(code, *(code))
         self.config = self.get_config(config, chess_type)
         self.code = code
 

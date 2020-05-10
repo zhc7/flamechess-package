@@ -2,7 +2,10 @@ import configparser
 import logging
 import time
 import traceback
-from .play import ChessBoard, tpe
+try:
+    from .play import ChessBoard, tpe
+except ImportError:
+    from play import ChessBoard, tpe
 
 API_GET = 'http://www.eanson.work/ai/status?code={code}'
 API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
@@ -16,8 +19,8 @@ logging.basicConfig(filename='log.txt', level=logging.DEBUG,
 
 class State:
     def __init__(self, state, reading_size=None, board_size=None):
-        self.reading_size = reading_size
-        self.board_size = board_size
+        self.reading_size = eval(str(reading_size))    # 让str可以读取，并且保证不是str的不报错
+        self.board_size = eval(str(board_size))
         if type(state) == str:
             state = self.preprocess(state)
             state = self.transfer_to_board_size(state)

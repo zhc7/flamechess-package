@@ -49,7 +49,7 @@ class State:
             new_state.append(line)
         return new_state
 
-    def transfer_to_board_size(self, state):
+    def transfer_to_board_size(self, state: list):
         """接收0Zz型reading_size的list棋盘，转换为0Zz型board_size的list棋盘"""
         filled_board = ''
         board_x, board_y = self.board_size
@@ -175,7 +175,9 @@ class Board(ChessBoard):
                 old_line = miss + line + miss
             old_form.append(old_line)
             i += 1
-        return State(old_form, self.config["reading_size"], self.config["board_size"])
+        state = State(old_form, self.config["reading_size"], self.config["board_size"])
+        state.state = state.transfer_to_board_size(state.state)
+        return state
         # type:State  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
 
     def main(self):

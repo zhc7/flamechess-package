@@ -9,6 +9,7 @@ class Client(socketio.Client):
         self.userId = userId
         self.data = None
         self.chesspos = None
+        self.logged_in = False
         self.on("connect", self.on_connect)
         self.on("login_result", self.on_login)
         self.on("login_fail", self.on_login_fail)
@@ -25,6 +26,7 @@ class Client(socketio.Client):
     def on_login(self, data):
         self.data = data
         self.chesspos = data["board"]["chesspos"]
+        self.logged_in = True
 
     def on_update(self, chesspos):
         self.chesspos = chesspos

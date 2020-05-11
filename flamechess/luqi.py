@@ -155,7 +155,7 @@ class Board(Client):
 
     def get_the_board(self):
         """获取列表0Zz形式的现有棋盘"""
-        board = self.chesspos
+        board = self.get_data()
         cut_board = []
         x, y = eval(self.config["board_size"])
         for i in range(y):
@@ -216,6 +216,8 @@ class Board(Client):
 
 def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):
     board = Board(config_path, chess_type, code)
+    while not board.logged_in:
+        pass
     board.main()
 
 

@@ -15,7 +15,7 @@ setup(name="flamechess",
       long_description_content_type="text/markdown",
       url="https://github.com/zhc7/flamechess-package",
       packages=find_namespace_packages(),
-      install_requires=["requests"],
+      install_requires=["requests", "chessterm-sdk", "python-socketio[client]"],
       classifiers=[
           "Environment :: Console",
           "Programming Language :: Python :: 3.8",

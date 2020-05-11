@@ -3,15 +3,7 @@ import logging
 import time
 import traceback
 import os
-try:
-    from .play import ChessBoard
-except ImportError:
-    from play import ChessBoard
-
-API_GET = 'http://www.eanson.work/ai/status?code={code}'
-API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
-nAPI_GET = 'http://flamechess.cn/js/1/31/fcdbrw.php?id={code}'
-nAPI_SET = 'http://flamechess.cn/js/1/31/fcdbrw.php?i={content}&id={code}'
+import chessterm
 DELAY = 0.5
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG,
@@ -98,9 +90,10 @@ class State:
         return [r1, r2, r3]
 
 
-class Board(ChessBoard):
+class Board(chessterm.Board):
     def __init__(self, config, chess_type, code):
-        super().__init__(code, *tpe(code))
+        super().__init__({'id' : code})
+        self.get_data()
         self.config = self.get_config(config, chess_type)
         self.code = code
 
@@ -147,17 +140,18 @@ class Board(ChessBoard):
 
     def get_the_board(self):
         """获取列表0Zz形式的现有棋盘"""
-        board = self.get()
+        board = self.get_data()
+        return State(board.chesspos_cut(5))
         cut_board = []
         x, y = eval(self.config["board_size"])
-        for i in range(5):
+        for i in range(y):
             cut_board.append(board[x * i:x * (i + 1)])
         return State(cut_board)  # type:State  # example:['00000','00z00','00Z00','0ZZZ0','Z0Z0Z']
 
     def set_new_board(self, board: State):
         """根据输入的列表0Zz形board_size棋盘，转换为str后重设网上棋盘"""
         str_board = str(board)
-        return self.set(str_board)  # 重设网上棋盘
+        return self.set_data(str_board)  # 重设网上棋盘
 
     def transfer_to_old_form(self, new_form):
         """将字符串b'v棋盘形式，转换为列表0Zz形式的棋盘(size是reading_size) v->z,b->Z"""
@@ -204,13 +198,6 @@ class Board(ChessBoard):
             self.set_new_board(policy)
             last_board = policy
             time.sleep(DELAY)
-
-
-def tpe(code):
-    if code.isdigit():
-        return nAPI_GET, nAPI_SET
-    else:
-        return API_GET, API_SET
 
 
 def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):

@@ -4,9 +4,9 @@ import time
 import traceback
 import os
 try:
-    from .play import ChessBoard, tpe
+    from .play import ChessBoard
 except ImportError:
-    from play import ChessBoard, tpe
+    from play import ChessBoard
 
 API_GET = 'http://www.eanson.work/ai/status?code={code}'
 API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
@@ -202,6 +202,13 @@ class Board(ChessBoard):
             self.set_new_board(policy)
             last_board = policy
             time.sleep(DELAY)
+
+
+def tpe(code):
+    if code.isdigit():
+        return nAPI_GET, nAPI_SET
+    else:
+        return API_GET, API_SET
 
 
 def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):

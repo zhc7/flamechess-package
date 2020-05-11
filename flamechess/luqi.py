@@ -92,7 +92,7 @@ class State:
 
 class Board(chessterm.Board):
     def __init__(self, config, chess_type, code):
-        super().__init__({'id' : code})
+        super().__init__({'id': code})
         self.get_data()
         self.config = self.get_config(config, chess_type)
         self.code = code

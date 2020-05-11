@@ -171,7 +171,7 @@ class Board(ChessBoard):
             if i == 4 and self.config['chess_type'] == 'luqi':
                 old_line = '0'.join(list(line))
             else:
-                miss = '0' * int((eval(self.config['Board_size'])[0] - len(line)) / 2)  # 补位
+                miss = '0' * int((eval(self.config['board_size'])[0] - len(line)) / 2)  # 补位
                 old_line = miss + line + miss
             old_form.append(old_line)
             i += 1

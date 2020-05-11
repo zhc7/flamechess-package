@@ -94,7 +94,7 @@ class State:
 
 class Board(ChessBoard):
     def __init__(self, config, chess_type, code):
-        super().__init__(code, *(code))
+        super().__init__(code)
         self.config = self.get_config(config, chess_type)
         self.code = code
 

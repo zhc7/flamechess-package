@@ -4,9 +4,14 @@ import time
 import traceback
 import os
 try:
-    from .play import ChessBoard, tpe, API_SET, API_GET, nAPI_SET, nAPI_GET
+    from .play import ChessBoard, tpe
 except ImportError:
-    from play import ChessBoard, tpe, API_SET, API_GET, nAPI_SET, nAPI_GET
+    from play import ChessBoard, tpe
+
+API_GET = 'http://www.eanson.work/ai/status?code={code}'
+API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
+nAPI_GET = 'http://flamechess.cn/js/1/31/fcdbrw.php?id={code}'
+nAPI_SET = 'http://flamechess.cn/js/1/31/fcdbrw.php?i={content}&id={code}'
 DELAY = 0.5
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG,
@@ -171,7 +176,7 @@ class Board(ChessBoard):
             old_form.append(old_line)
             i += 1
         return State(old_form, self.config["reading_size"], self.config["board_size"])
-        # type:list  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
+        # type:State  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
 
     def main(self):
         config = self.config

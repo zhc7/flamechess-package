@@ -33,3 +33,14 @@ class Client(socketio.Client):
 
     def get_data(self):
         return self.chesspos
+
+
+if __name__ == '__main__':
+    client = Client(1002, 10170101)
+    last_board = client.get_data()
+    while True:
+        board = client.get_data()
+        if board != last_board:
+            print(board)
+            client.set_data('000000ZZZ0000000zzz000000')
+        last_board = board

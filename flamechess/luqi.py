@@ -101,9 +101,9 @@ class Board(Client):
     def __init__(self, config, chess_type, code):
         self.config = self.get_config(config, chess_type)
         if self.config["chess_type"] == "luqi":
-            gameID = "1002"
-        elif self.config["chess_type"] == "zhuobie":
             gameID = "1003"
+        elif self.config["chess_type"] == "zhuobie":
+            gameID = "1002"
         else:
             raise WrongChessTypeError("Chess type not accepted, expect 'luqi' or 'zhuobie', got", chess_type)
         super().__init__(gameID, code)

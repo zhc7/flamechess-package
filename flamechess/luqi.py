@@ -3,11 +3,18 @@ import logging
 import time
 import traceback
 import os
-import chessterm
+try:
+    from .socket import Client
+except ImportError:
+    from socket import Client
 DELAY = 0.5
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+class WrongChessTypeError(Exception):
+    pass
 
 
 class State:
@@ -90,11 +97,16 @@ class State:
         return [r1, r2, r3]
 
 
-class Board(chessterm.Board):
+class Board(Client):
     def __init__(self, config, chess_type, code):
-        super().__init__({'id': code})
-        self.get_data()
         self.config = self.get_config(config, chess_type)
+        if self.config["chess_type"] == "luqi":
+            gameID = "1002"
+        elif self.config["chess_type"] == "zhuobie":
+            gameID = "1002"
+        else:
+            raise WrongChessTypeError("Chess type not accepted, expect 'luqi' or 'zhuobie', got", chess_type)
+        super().__init__(gameID, code)
         self.code = code
 
     @staticmethod

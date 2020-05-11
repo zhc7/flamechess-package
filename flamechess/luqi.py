@@ -204,7 +204,7 @@ class Board(ChessBoard):
             time.sleep(DELAY)
 
 
-def main(chess_type, code, config_path=os.path.abspath("config.ini")):
+def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):
     board = Board(config_path, chess_type, code)
     board.main()
 

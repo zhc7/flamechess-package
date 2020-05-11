@@ -2,6 +2,7 @@ import configparser
 import logging
 import time
 import traceback
+import os
 try:
     from .play import ChessBoard, tpe, API_SET, API_GET, nAPI_SET, nAPI_GET
 except ImportError:
@@ -198,8 +199,8 @@ class Board(ChessBoard):
             time.sleep(DELAY)
 
 
-def main(chess_type, code):
-    board = Board("config.ini", chess_type, code)
+def main(chess_type, code, config_path=os.path.abspath("config.ini")):
+    board = Board(config_path, chess_type, code)
     board.main()
 
 

@@ -103,7 +103,7 @@ class Board(Client):
         if self.config["chess_type"] == "luqi":
             gameID = "1002"
         elif self.config["chess_type"] == "zhuobie":
-            gameID = "1002"
+            gameID = "1003"
         else:
             raise WrongChessTypeError("Chess type not accepted, expect 'luqi' or 'zhuobie', got", chess_type)
         super().__init__(gameID, code)

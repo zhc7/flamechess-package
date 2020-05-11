@@ -9,8 +9,11 @@ except ImportError:
     from socketIO import Client
 DELAY = 0.5
 
-logging.basicConfig(filename='log.txt', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+try:
+    logging.basicConfig(filename='log.txt', level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+except PermissionError:
+    pass
 
 
 class WrongChessTypeError(Exception):

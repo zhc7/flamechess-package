@@ -155,7 +155,7 @@ class Board(Client):
 
     def get_the_board(self):
         """获取列表0Zz形式的现有棋盘"""
-        board = self.get_data()
+        board = self.chesspos
         cut_board = []
         x, y = eval(self.config["board_size"])
         for i in range(y):

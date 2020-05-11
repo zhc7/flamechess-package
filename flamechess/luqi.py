@@ -4,9 +4,9 @@ import time
 import traceback
 import os
 try:
-    from .socket import Client
+    from .socketIO import Client
 except ImportError:
-    from socket import Client
+    from socketIO import Client
 DELAY = 0.5
 
 logging.basicConfig(filename='log.txt', level=logging.DEBUG,

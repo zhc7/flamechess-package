@@ -95,7 +95,7 @@ class State:
 
 class Board(ChessBoard):
     def __init__(self, config, chess_type, code):
-        super().__init__(code)
+        super().__init__(code, *tpe(code))
         self.config = self.get_config(config, chess_type)
         self.code = code
 
@@ -144,7 +144,7 @@ class Board(ChessBoard):
         """获取列表0Zz形式的现有棋盘"""
         board = self.get()
         cut_board = []
-        x, y = self.config["board_size"]
+        x, y = eval(self.config["board_size"])
         for i in range(5):
             cut_board.append(board[x * i:x * (i + 1)])
         return State(cut_board)  # type:State  # example:['00000','00z00','00Z00','0ZZZ0','Z0Z0Z']
@@ -170,7 +170,7 @@ class Board(ChessBoard):
                 old_line = miss + line + miss
             old_form.append(old_line)
             i += 1
-        return State(old_form, self.config["reading_size"], self.config["board-size"])
+        return State(old_form, self.config["reading_size"], self.config["board_size"])
         # type:list  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
 
     def main(self):

@@ -24,7 +24,6 @@ class Client(socketio.Client):
 
     def on_login(self, data):
         self.data = data
-        print('logged in', data)
 
     def on_update(self, chesspos):
         self.chesspos = chesspos

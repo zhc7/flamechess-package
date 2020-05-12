@@ -197,9 +197,10 @@ class Board(Client):
         else:
             cleared_board = self.transfer_to_old_form("bbb'|'vvv")
         self.set_new_board(cleared_board)
-        last_board = self.get_the_board()  # type:State
+        last_board = cleared_board  # type:State
         while True:
             # 人机交互，人调整棋盘，于是board与last_board不同，然后在policies中搜寻解法，搜到就调整棋盘
+            time.sleep(DELAY)
             board = self.get_the_board()
             if board == last_board:
                 continue
@@ -211,7 +212,6 @@ class Board(Client):
                 policy = board
             self.set_new_board(policy)
             last_board = policy
-            time.sleep(DELAY)
 
 
 def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):

@@ -2,19 +2,22 @@ import configparser
 import logging
 import time
 import traceback
+import os
 try:
-    from .play import ChessBoard, tpe
+    from .socketIO import Client
 except ImportError:
-    from play import ChessBoard, tpe
-
-API_GET = 'http://www.eanson.work/ai/status?code={code}'
-API_SET = 'http://www.eanson.work/cb/status?i={content}&code={code}'
-nAPI_GET = 'http://flamechess.cn/js/1/31/fcdbrw.php?id={code}'
-nAPI_SET = 'http://flamechess.cn/js/1/31/fcdbrw.php?i={content}&id={code}'
+    from socketIO import Client
 DELAY = 0.5
 
-logging.basicConfig(filename='log.txt', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+try:
+    logging.basicConfig(filename='log.txt', level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+except PermissionError:
+    pass
+
+
+class WrongChessTypeError(Exception):
+    pass
 
 
 class State:
@@ -48,7 +51,7 @@ class State:
             new_state.append(line)
         return new_state
 
-    def transfer_to_board_size(self, state):
+    def transfer_to_board_size(self, state: list):
         """接收0Zz型reading_size的list棋盘，转换为0Zz型board_size的list棋盘"""
         filled_board = ''
         board_x, board_y = self.board_size
@@ -97,10 +100,16 @@ class State:
         return [r1, r2, r3]
 
 
-class Board(ChessBoard):
+class Board(Client):
     def __init__(self, config, chess_type, code):
-        super().__init__(code, *tpe(code))
         self.config = self.get_config(config, chess_type)
+        if self.config["chess_type"] == "luqi":
+            gameID = "1003"
+        elif self.config["chess_type"] == "zhuobie":
+            gameID = "1002"
+        else:
+            raise WrongChessTypeError("Chess type not accepted, expect 'luqi' or 'zhuobie', got", chess_type)
+        super().__init__(gameID, code)
         self.code = code
 
     @staticmethod
@@ -146,17 +155,17 @@ class Board(ChessBoard):
 
     def get_the_board(self):
         """获取列表0Zz形式的现有棋盘"""
-        board = self.get()
+        board = self.get_data()
         cut_board = []
-        x, y = self.config["board_size"]
-        for i in range(5):
+        x, y = eval(self.config["board_size"])
+        for i in range(y):
             cut_board.append(board[x * i:x * (i + 1)])
         return State(cut_board)  # type:State  # example:['00000','00z00','00Z00','0ZZZ0','Z0Z0Z']
 
     def set_new_board(self, board: State):
         """根据输入的列表0Zz形board_size棋盘，转换为str后重设网上棋盘"""
         str_board = str(board)
-        return self.set(str_board)  # 重设网上棋盘
+        return self.set_data(str_board)  # 重设网上棋盘
 
     def transfer_to_old_form(self, new_form):
         """将字符串b'v棋盘形式，转换为列表0Zz形式的棋盘(size是reading_size) v->z,b->Z"""
@@ -170,12 +179,14 @@ class Board(ChessBoard):
             if i == 4 and self.config['chess_type'] == 'luqi':
                 old_line = '0'.join(list(line))
             else:
-                miss = '0' * int((eval(self.config['reading_size'])[0] - len(line)) / 2)  # 补位
+                miss = '0' * int((eval(self.config['board_size'])[0] - len(line)) / 2)  # 补位
                 old_line = miss + line + miss
             old_form.append(old_line)
             i += 1
-        return State(old_form, self.config["reading_size"], self.config["board-size"])
-        # type:list  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
+        state = State(old_form, self.config["reading_size"], self.config["board_size"])
+        state.state = state.transfer_to_board_size(state.state)
+        return state
+        # type:State  # example:['00000','0Zz00','00000','0ZZZ0','Z0Z0Z']
 
     def main(self):
         config = self.config
@@ -203,8 +214,10 @@ class Board(ChessBoard):
             time.sleep(DELAY)
 
 
-def main(chess_type, code):
-    board = Board("config.ini", chess_type, code)
+def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__) + "/config.ini")):
+    board = Board(config_path, chess_type, code)
+    while not board.logged_in:
+        pass
     board.main()
 
 

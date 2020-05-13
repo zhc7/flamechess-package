@@ -1,19 +1,11 @@
 import configparser
-import logging
 import time
-import traceback
 import os
 try:
     from .socketIO import Client
 except ImportError:
     from socketIO import Client
 DELAY = 0.5
-
-try:
-    logging.basicConfig(filename='log.txt', level=logging.DEBUG,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
-except PermissionError:
-    pass
 
 
 class WrongChessTypeError(Exception):
@@ -222,10 +214,6 @@ def main(chess_type, code, config_path=os.path.abspath(os.path.dirname(__file__)
 
 
 if __name__ == '__main__':
-    try:
-        input_chess_type = input("please input chess type, 'luqi' or 'zhuobie':")
-        input_code = input("code:")
-        main(input_chess_type, input_code)
-    except Exception:
-        logging.debug(traceback.format_exc())
-        raise
+    input_chess_type = input("please input chess type, 'luqi' or 'zhuobie':")
+    input_code = input("code:")
+    main(input_chess_type, input_code)

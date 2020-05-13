@@ -51,3 +51,4 @@
 * 0.1.3 更新了README.md和url
 * 0.1.4 修复了一些已知问题，删除了不该出现的文件
 * 0.2.0 将luqi.py的棋盘接口改为了chessTerm的websocket接口，对README.md进行了一些修改完善，修复了若干已知问题
+* 0.2.1 删除luqi.py的log记录

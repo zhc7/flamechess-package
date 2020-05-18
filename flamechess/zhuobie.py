@@ -28,14 +28,16 @@ class Game:
             for x, place in enumerate(line):
                 if place != player:
                     continue
-                avail = self.available[(x, y)]
+                avail = self.available[(y, x)]
                 for p in avail:
-                    if p == 0:
-                        available.append(((x, y), p))
+                    yp, xp = p
+                    if state[yp][xp] == 0:
+                        available.append(((y, x), p))
         return available
 
     def next_state(self, state, action, player):
-        (x1, y1), (x2, y2) = action
+        (y1, x1), (y2, x2) = action
+        state = list(state)
         state[y1][x1] = 0
         state[y2][x2] = player
         for side1, side2 in self.corners.keys():

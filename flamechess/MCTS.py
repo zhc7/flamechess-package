@@ -5,6 +5,7 @@ from .jiuqi import Game
 
 class Node:
     def __init__(self, parent, state, action, game, layer):
+        state = list(state)
         self.count = 0
         self.black_win = 0
         self.white_win = 0
@@ -12,11 +13,11 @@ class Node:
         self.children = []
         self.parent = parent
         self.turn = -parent.turn
-        self.state = state
+        self.state = list(state)
         self.action = action
         self.game = game  # 规则
         self.layer = layer
-        self.all_actions = game.available_actions(state)
+        self.all_actions = game.available_actions(state, self.turn)
         self.tried_actions = []
 
     def __del__(self):
@@ -41,7 +42,7 @@ class Node:
         untried_actions = [action for action in self.all_actions if action not in self.tried_actions]
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
-        next_state = self.game.next_state(self.state, action)
+        next_state = self.game.next_state(self.state, action, self.turn)
         child = Node(self, next_state, action, self.game, self.layer + 1)
         self.children.append(child)
         return child
@@ -71,35 +72,36 @@ class Node:
             return reward
 
     def simulate(self):
-        state = self.state
+        state = list(self.state)
+        turn = self.turn
         while not self.game.end_game(state):
-            action = random.choice(self.game.available_actions(state))
-            state = self.game.next_state(state, action)
+            action = random.choice(self.game.available_actions(state, turn))
+            state = self.game.next_state(state, action, turn)
+            turn = -turn
         return self.game.end_game(state)  # -1 or 1
 
 
 class RootNode(Node):
-    def __init__(self, state, game):
+    def __init__(self, state, game, player):
         self.count = 0
         self.black_win = 0
         self.white_win = 0
         self.win = 0
         self.children = []
-        self.turn = 1
-        self.state = state
+        self.turn = player
+        self.state = list(state)
         self.game = game  # 规则
         self.layer = 0
-        self.all_actions = game.available_actions(state)
+        self.all_actions = game.available_actions(state, self.turn)
         self.tried_actions = []
 
 
 class Tree:
-    def __init__(self, initial_state, max_search_depth, game):
-        self.root = RootNode(initial_state, game)
+    def __init__(self, initial_state, max_search_depth, game, initial_player):
+        self.root = RootNode(initial_state, game, initial_player)
         self.max_depth = max_search_depth
-        self.main()
 
-    def main(self):
+    def search(self):
         ok = True
         while ok:
             response = self.root.forward(self.max_depth)
@@ -112,5 +114,15 @@ class Tree:
         self.root = best_child
         self.max_depth += 1
         return best_child.action
+
+    def update(self, action):
+        for child in self.root.children:
+            if child.action != action:
+                del child
+            else:
+                best_child = child
+        self.root = best_child
+        self.max_depth += 1
+
 
 

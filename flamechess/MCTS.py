@@ -1,11 +1,11 @@
 import math
 import random
+from copy import deepcopy
 from .jiuqi import Game
 
 
 class Node:
     def __init__(self, parent, state, action, game, layer):
-        state = list(state)
         self.count = 0
         self.black_win = 0
         self.white_win = 0
@@ -13,7 +13,7 @@ class Node:
         self.children = []
         self.parent = parent
         self.turn = -parent.turn
-        self.state = list(state)
+        self.state = deepcopy(state)
         self.action = action
         self.game = game  # 规则
         self.layer = layer
@@ -42,7 +42,7 @@ class Node:
         untried_actions = [action for action in self.all_actions if action not in self.tried_actions]
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
-        next_state = self.game.next_state(self.state, action, self.turn)
+        next_state = self.game.next_state(deepcopy(self.state), action, self.turn)
         child = Node(self, next_state, action, self.game, self.layer + 1)
         self.children.append(child)
         return child
@@ -72,7 +72,7 @@ class Node:
             return reward
 
     def simulate(self):
-        state = list(self.state)
+        state = deepcopy(self.state)
         turn = self.turn
         while not self.game.end_game(state):
             action = random.choice(self.game.available_actions(state, turn))
@@ -89,7 +89,7 @@ class RootNode(Node):
         self.win = 0
         self.children = []
         self.turn = player
-        self.state = list(state)
+        self.state = deepcopy(state)
         self.game = game  # 规则
         self.layer = 0
         self.all_actions = game.available_actions(state, self.turn)

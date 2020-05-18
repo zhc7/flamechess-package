@@ -4,7 +4,7 @@ from .jiuqi import Game
 
 
 class Node:
-    def __init__(self, parent, state, game):
+    def __init__(self, parent, state, action, game, layer):
         self.count = 0
         self.black_win = 0
         self.white_win = 0
@@ -13,9 +13,15 @@ class Node:
         self.parent = parent
         self.turn = -parent.turn
         self.state = state
+        self.action = action
         self.game = game  # 规则
+        self.layer = layer
         self.all_actions = game.available_actions(state)
         self.tried_actions = []
+
+    def __del__(self):
+        for child in self.children:
+            del child
 
     @staticmethod
     def UCB(win, count, t):
@@ -23,7 +29,7 @@ class Node:
         It = win / count + Cts
         return It
 
-    def biggest_UCB(self):
+    def best_child(self):
         biggest = (0, None)
         for child in self.children:
             ucb = self.UCB(child.win, child.count, self.count)
@@ -36,35 +42,40 @@ class Node:
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
         next_state = self.game.next_state(self.state, action)
-        child = Node(self, next_state, self.game)
+        child = Node(self, next_state, action, self.game, self.layer + 1)
         self.children.append(child)
         return child
 
     def renew(self, reward):
         self.count += 1
-        self.black_win += reward
-        self.white_win += 1 - reward
+        self.black_win += max(reward, 0)    # 黑色赢的话reward为1
+        self.white_win += max(-reward, 0)   # 白色赢的话reward为-1
         if self.parent.turn == 1:
             self.win = self.black_win
         else:
             self.win = self.white_win
 
-    def forward(self):
+    def forward(self, max_depth):
+        if self.layer >= max_depth:
+            return 'max_depth'
         if set(self.tried_actions) != set(self.all_actions):  # 没有被完全展开
             child = self.expand()
             reward = child.simulate()
         else:
-            child = self.biggest_UCB()  # 选择UCB最大的子节点
-            reward = child.forward()
-        self.renew(reward)
-        return reward
+            child = self.best_child()  # 选择UCB最大的子节点
+            reward = child.forward(max_depth)
+        if reward == 'max_depth':
+            return reward
+        else:
+            self.renew(reward)
+            return reward
 
     def simulate(self):
         state = self.state
         while not self.game.end_game(state):
             action = random.choice(self.game.available_actions(state))
             state = self.game.next_state(state, action)
-        return self.game.end_game(state)
+        return self.game.end_game(state)  # -1 or 1
 
 
 class RootNode(Node):
@@ -77,16 +88,29 @@ class RootNode(Node):
         self.turn = 1
         self.state = state
         self.game = game  # 规则
+        self.layer = 0
         self.all_actions = game.available_actions(state)
         self.tried_actions = []
 
 
 class Tree:
-    def __init__(self, initial_state, game):
+    def __init__(self, initial_state, max_search_depth, game):
         self.root = RootNode(initial_state, game)
+        self.max_depth = max_search_depth
         self.main()
 
     def main(self):
         ok = True
         while ok:
-            self.root.forward()
+            response = self.root.forward(self.max_depth)
+            if response == 'max_depth':
+                ok = False
+        best_child = self.root.best_child()
+        for child in self.root.children:
+            if child != best_child:
+                del child
+        self.root = best_child
+        self.max_depth += 1
+        return best_child.action
+
+

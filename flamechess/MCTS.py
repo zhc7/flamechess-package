@@ -51,18 +51,21 @@ class Node:
         self.count += 1
         self.black_win += max(reward, 0)    # 黑色赢的话reward为1
         self.white_win += max(-reward, 0)   # 白色赢的话reward为-1
-        if self.parent.turn == 1:
+        if self.turn == -1:     # 父节点是轮到黑棋下
             self.win = self.black_win
         else:
             self.win = self.white_win
 
     def forward(self, max_depth):
-        if self.layer >= max_depth:
+        if self.layer >= max_depth:     # 超过最大深度不再搜索
             return 'max_depth'
-        if set(self.tried_actions) != set(self.all_actions):  # 没有被完全展开
+        end = self.game.end_game(self.state, self.turn)
+        if end:     # 终局情况
+            reward = end
+        elif set(self.tried_actions) != set(self.all_actions):  # 没有被完全展开
             child = self.expand()
             reward = child.simulate()
-        else:
+        else:       # 完全展开，选择子节点
             child = self.best_child()  # 选择UCB最大的子节点
             reward = child.forward(max_depth)
         if reward == 'max_depth':
@@ -74,11 +77,16 @@ class Node:
     def simulate(self):
         state = deepcopy(self.state)
         turn = self.turn
-        while not self.game.end_game(state):
-            action = random.choice(self.game.available_actions(state, turn))
-            state = self.game.next_state(state, action, turn)
+        while not self.game.end_game(state, turn):
+            try:
+                action = random.choice(self.game.available_actions(state, turn))
+            except IndexError:
+                print(state, action)
+            state = self.game.next_state(deepcopy(state), action, turn)
             turn = -turn
-        return self.game.end_game(state)  # -1 or 1
+        reward = self.game.end_game(state, turn)
+        self.renew(reward)
+        return reward  # -1 or 1
 
 
 class RootNode(Node):

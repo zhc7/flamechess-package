@@ -156,23 +156,26 @@ def beautiful_print(state):
         print(end='\n')
 
 
-
-def test(game):
+def test(game, output):
     player1 = Tree(game.initial_state, game, 1, max_node=500)
     action = player1.search()
     state = game.next_state(game.initial_state, action, 1)
     player2 = Tree(state, game, -1, max_node=500)
-    action = player2.search()
-    player1.update(action)
-    while not game.end_game(player1.root.state, 1):
-        beautiful_print(player1.root.state)
-        input()
-        action = player1.search()
-        player2.update(action)
+    while True:
+        action = player2.search()
+        if output:
+            beautiful_print(player2.root.state)
+            print(player2.root.count, player2.root.win)
+            input()
         if game.end_game(player2.root.state, -1):
             return game.end_game(player2.root.state, -1)
-        beautiful_print(player2.root.state)
-        input()
-        action = player2.search()
         player1.update(action)
-    return game.end_game(player1.root.state, 1)
+        #
+        action = player1.search()
+        if output:
+            beautiful_print(player1.root.state)
+            print(player1.root.count, player1.root.win)
+            input()
+        if game.end_game(player1.root.state, 1):
+            return game.end_game(player1.root.state, 1)
+        player2.update(action)

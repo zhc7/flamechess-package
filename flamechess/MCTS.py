@@ -156,7 +156,7 @@ def beautiful_print(state):
         print(end='\n')
 
 
-def test(game, output):
+def test(game, output=False):
     player1 = Tree(game.initial_state, game, 1, max_node=500)
     action = player1.search()
     state = game.next_state(game.initial_state, action, 1)

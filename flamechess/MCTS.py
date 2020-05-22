@@ -135,11 +135,21 @@ class Tree:
         self.root = best_child
         if type(self.max_depth) == int:
             self.max_depth += 1
-        return best_child.action
+        return best_child
 
     def update(self, action):
         for child in self.root.children:
             if child.action != action:
+                del child
+            else:
+                best_child = child
+        self.root = best_child
+        if type(self.max_depth) == int:
+            self.max_depth += 1
+
+    def update_by_state(self, state):
+        for child in self.root.children:
+            if child.state != state:
                 del child
             else:
                 best_child = child
@@ -158,11 +168,11 @@ def beautiful_print(state):
 
 def test(game, output=False):
     player1 = Tree(game.initial_state, game, 1, max_node=500)
-    action = player1.search()
+    action = player1.search().action
     state = game.next_state(game.initial_state, action, 1)
     player2 = Tree(state, game, -1, max_node=500)
     while True:
-        action = player2.search()
+        action = player2.search().action
         if output:
             beautiful_print(player2.root.state)
             print(player2.root.count, player2.root.win)
@@ -171,7 +181,7 @@ def test(game, output=False):
             return game.end_game(player2.root.state, -1)
         player1.update(action)
         #
-        action = player1.search()
+        action = player1.search().action
         if output:
             beautiful_print(player1.root.state)
             print(player1.root.count, player1.root.win)

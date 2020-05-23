@@ -1,7 +1,6 @@
 import math
 import random
 from copy import deepcopy
-from .jiuqi import Game
 
 
 class Node:

@@ -32,7 +32,7 @@ class Wrapped(Client):
                 new_chesspos += new_change[spot]
             new_chesspos += '0'
         new_chesspos += '00000'
-        self.set_data(new_state)
+        self.set_data(new_chesspos)
 
 
 def main(userId):

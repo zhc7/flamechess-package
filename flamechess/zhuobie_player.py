@@ -24,6 +24,14 @@ class Wrapped(Client):
         else:
             self.tree.update_by_state(state)
         new_state = self.tree.search().state
+        new_chesspos = '00000'
+        new_change = {1:'Z',-1:'z',0:'0'}
+        for line in new_state:
+            new_chesspos += '0'
+            for spot in line:
+                new_chesspos += new_change[spot]
+            new_chesspos += '0'
+        new_chesspos += '00000'
         self.set_data(new_state)
 
 

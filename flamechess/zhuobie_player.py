@@ -9,6 +9,7 @@ class Wrapped(Client):
         self.game = Game()
         self.tree = None
         self.first_run = True
+        self.set_data('000000ZZZ0000000zzz000000')
 
     def on_update(self, chesspos):
         print(chesspos, self.chesspos)
@@ -23,7 +24,7 @@ class Wrapped(Client):
                 new_line.append(change[spot])
             state.append(new_line)
         if self.first_run:
-            self.tree = Tree(state, self.game, -1, max_node=100)
+            self.tree = Tree(state, self.game, -1, max_node=500)
             self.first_run = False
             print("initialize")
         else:

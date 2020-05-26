@@ -12,10 +12,8 @@ class Wrapped(Client):
         self.set_data('000000ZZZ0000000zzz000000')
 
     def on_update(self, chesspos):
-        print(chesspos, self.chesspos)
         if chesspos == self.chesspos:
             return
-        print("update")
         state = []
         change = {'z': 1, 'Z': -1, '0': 0}
         for line in [chesspos[6:9], chesspos[11:14], chesspos[16:19]]:
@@ -26,13 +24,9 @@ class Wrapped(Client):
         if self.first_run:
             self.tree = Tree(state, self.game, -1, max_node=500)
             self.first_run = False
-            print("initialize")
         else:
-            print("updateeeee")
             self.tree.update_by_state(state)
-        print("searching")
         new_state = self.tree.search().state
-        print(new_state if state else "None")
         new_chesspos = '00000'
         new_change = {1:'z',-1:'Z',0:'0'}
         for line in new_state:
@@ -41,7 +35,6 @@ class Wrapped(Client):
                 new_chesspos += new_change[spot]
             new_chesspos += '0'
         new_chesspos += '00000'
-        print(new_chesspos if new_chesspos else "None")
         self.chesspos = new_chesspos
         self.set_data(new_chesspos)
 

@@ -1,4 +1,5 @@
 import itertools
+from copy import deepcopy
 class Game(object):
     def __init__(self):
         pass
@@ -21,8 +22,8 @@ class Game(object):
                                 actions.append(action[0:-1]+[start,point]) #将单一行棋合并到以初始起点为起点的行棋中
                     else: #start为初始起点时
                         actions.append([start,point])
-                    state1=state
-                    copystate=self.adjust_chessboard((start,point),state1,me) #编辑棋盘时复制一个新棋盘，不会瞎改原棋盘
+                    state2=deepcopy(state)
+                    copystate=self.adjust_chessboard((start,point),state2,me) #编辑棋盘时复制一个新棋盘，不会瞎改原棋盘
                     jump_action(point,copystate,me)
         if flag == 'layout':  # 布棋阶段
             ret=[]
@@ -65,9 +66,7 @@ class Game(object):
                 actions=[]
                 actions_first_processed=[] #第一次处理（不包括褡裢）
                 actions_last=[] #最后版本（考虑褡裢）
-                state1=[]
-                for l in state:
-                    state1.append(l)
+                state1=deepcopy(state)
                 jump_action(one,state1,me) #就地修改actions,加入所有跳棋步骤（不包括所有提子）
                 for a in actions:
                     actions_first_processed.append(self.action_process(a)) #将跳棋步骤加入跳提子
@@ -125,7 +124,7 @@ class Game(object):
         for i in range(len(action)-1):
             start=action[i]
             end=action[i+1]
-            remove=((start[0]+end[0])/2,(start[1]+end[1])/2)
+            remove=(int((start[0]+end[0])/2),int((start[1]+end[1])/2))
             removed.append(remove)
         return [action,removed]
 
@@ -137,7 +136,7 @@ class Game(object):
         start=action[0][0]
         end=action[0][-1]
         row,col=end[0],end[1] #获取终止点的行列
-        state1=state
+        state1=deepcopy(state)
         state1[start[0]][start[1]]=0
         state1[row][col]=me
         for r in remove:

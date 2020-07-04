@@ -185,6 +185,7 @@ class Game(object):
                 if state[row_j][col_j] != 0 and state[row_j][col_j] != me and state[row_p][col_p] == 0:
                     can_jump.append((row_p, col_p))
         return can_jump
+    
     def next_state(self,state,action,flag,me):
         '''传入当前棋局，行棋步骤，行棋阶段和所持棋子，返回下一个棋局
         action example: [[(0, 0), (0, 2)], [(0, 1)]](play)  [(0,0),None](layout)'''
@@ -206,7 +207,33 @@ class Game(object):
                 (x,y)=action[0]
                 state[x][y]=me
         return state1
-
+    
+    def end_game(self,state,turn):
+        '''输入当前棋盘，返回谁赢谁输或和棋或未知
+        若胜负已定则回复棋子代号：1/-1, 若平局则回0, 若胜负未定则回2'''
+        state=deepcopy(state)
+        if not self.available_actions(state,'play',turn):
+            return -turn
+        chess_me=[]
+        chess_enemy=[]
+        for index, status in enumerate(sum(state,[])):
+            if status == turn:
+                row = index // 14
+                col = index - row * 14
+                chess_me.append((row, col))
+            elif status == -turn:
+                row = index // 14
+                col = index - row * 14
+                chess_enemy.append((row, col))
+        if len(chess_me)<=3:
+            actions=self.available_actions(state,'play',turn)
+            maximum_kill=0
+            for action in actions:
+                if len(action[1])>maximum_kill:
+                    maximum_kill=len(action[1])
+            if maximum_kill<len(chess_enemy)<=3:
+                return 0
+        return 2
 
 
 if __name__=='__main__':
@@ -226,10 +253,15 @@ if __name__=='__main__':
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     g=Game()
-    print(g.available_actions(state,'layout',1))
+    print('以下为测试数据:')
+    print('作为棋子1，返回所有可行步骤：',g.available_actions(state,'play',1))
+    print('作为棋子-1，返回所有可行步骤：',g.available_actions(state,'play',-1))
     action=[[(0, 0), (0, 2)], [(0, 1)]]
     state1=g.next_state(state,action,'play',1)
-    print(state1)
+    print('根据输入的action,返回棋盘下一状态:',state1)
+    print('轮到棋子1下棋，判断棋局胜负是否已分，谁胜谁负：',g.end_game(state,1))
+    print('轮到棋子-1下棋，判断棋局胜负是否已分，谁胜谁负：',g.end_game(state,-1))
+
 
 
 """

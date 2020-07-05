@@ -214,7 +214,7 @@ class Game(object):
 
     def end_game(self, state, turn):
         '''输入当前棋盘，返回谁赢谁输或和棋或未知
-        若胜负已定则回复棋子代号：1/-1, 若平局则回0, 若胜负未定则回2'''
+        若胜负已定则回复棋子代号：1/-1, 若平局则回0.5, 若胜负未定则回0'''
         state = deepcopy(state)
         if not self.available_actions(state, 'play', turn):
             return -turn
@@ -236,8 +236,8 @@ class Game(object):
                 if len(action[1]) > maximum_kill:
                     maximum_kill = len(action[1])
             if maximum_kill < len(chess_enemy) <= 3:
-                return 0
-        return 2
+                return 0.5
+        return 0
 
 
 if __name__ == '__main__':

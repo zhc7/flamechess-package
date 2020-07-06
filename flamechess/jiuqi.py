@@ -4,15 +4,31 @@ from copy import deepcopy
 
 class Game(object):
     def __init__(self):
-        pass
+        self.initial_state = \
+            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    def available_actions(self, state, flag, me):
+    def available_actions(self, state, player, flag):
         """根据当前棋盘，对弈阶段和所执棋子返回可以下的坐标 
         return type:list example:[[步骤列表，提子列表]*n](play)  [[落子坐标/None,提子坐标/None]*n](layout)
         state:棋盘状态 
         flag:对弈阶段('layout':布局,'play':行棋)
-        me:所执棋子 -1 or 1
+        player:所执棋子 -1 or 1
         """
+
+        me = player
 
         def jump_action(start, state, me):
             '''使用递归，dfs搜索，输入起始点坐标，就地修改函数外的actions变量'''
@@ -100,14 +116,13 @@ class Game(object):
             return all_actions
 
     def go_around(self, start, state):
-        '''往四周行棋，接收初始坐标，返回所有行棋步骤，包括提子补位'''
+        """往四周行棋，接收初始坐标，返回所有行棋步骤，包括提子补位"""
         actions = []
         row = start[0]
         col = start[1]
         possibilities = ((row, col + 1), (row, col - 1), (row + 1, col), (row - 1, col))
         for possibility in possibilities:
-            if 0 <= possibility[0] <= 13 and 0 <= possibility[1] <= 13 \
-                    and state[possibility[0]][possibility[1]] == 0:
+            if 13 >= possibility[0] >= 0 == state[possibility[0]][possibility[1]] and 0 <= possibility[1] <= 13:
                 actions.append([[start, possibility], []])  # 包含补位
         return actions
 
@@ -123,7 +138,7 @@ class Game(object):
         return state1
 
     def action_process(self, action):
-        '''将只包含跳棋路线的步骤变为包含必提子的步骤'''
+        """将只包含跳棋路线的步骤变为包含必提子的步骤"""
         removed = []
         for i in range(len(action) - 1):
             start = action[i]
@@ -133,7 +148,7 @@ class Game(object):
         return [action, removed]
 
     def find_dalian(self, state, action, me):
-        '''找寻褡裢，接收行棋步骤（包括行棋中提子），返回新的行棋步骤列表（包括可以提的子）'''
+        """找寻褡裢，接收行棋步骤（包括行棋中提子），返回新的行棋步骤列表（包括可以提的子）"""
         new_actions = []  # 返回的行棋步骤列表
         n = 0  # 形成褡裢数
         remove = action[1]  # 这里即便不是跳棋，没有提子也必须补位
@@ -190,9 +205,10 @@ class Game(object):
                     can_jump.append((row_p, col_p))
         return can_jump
 
-    def next_state(self, state, action, flag, me):
-        '''传入当前棋局，行棋步骤，行棋阶段和所持棋子，返回下一个棋局
-        action example: [[(0, 0), (0, 2)], [(0, 1)]](play)  [(0,0),None](layout)'''
+    def next_state(self, state, action, player, flag):
+        """传入当前棋局，行棋步骤，行棋阶段和所持棋子，返回下一个棋局
+        action example: [[(0, 0), (0, 2)], [(0, 1)]](play)  [(0,0),None](layout)"""
+        me = player
         state1 = deepcopy(state)
         if flag == 'play':
             (x1, y1) = action[0][0]
@@ -212,9 +228,11 @@ class Game(object):
                 state[x][y] = me
         return state1
 
-    def end_game(self, state, turn):
-        '''输入当前棋盘，返回谁赢谁输或和棋或未知
-        若胜负已定则回复棋子代号：1/-1, 若平局则回0.5, 若胜负未定则回0'''
+    def end_game(self, state, turn, flag):
+        """输入当前棋盘，返回谁赢谁输或和棋或未知
+        若胜负已定则回复棋子代号：1/-1, 若平局则回0.5, 若胜负未定则回0"""
+        if flag == "layout":
+            return 0
         state = deepcopy(state)
         if not self.available_actions(state, 'play', turn):
             return -turn

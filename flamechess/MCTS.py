@@ -4,7 +4,7 @@ from copy import deepcopy
 
 
 class Node:
-    def __init__(self, parent, state, action, game, layer):
+    def __init__(self, parent, state, action, game, layer, stage=0):
         self.count = 0
         self.black_win = 0
         self.white_win = 0
@@ -13,10 +13,17 @@ class Node:
         self.parent = parent
         self.turn = -parent.turn
         self.state = deepcopy(state)
+        self.flags = {0: "layout",
+                      1: "play"}
+        if self.is_full(state):
+            stage = 1
+            self.state[7][7] = self.state[8][8] = 0
+        self.stage = stage
+        self.flag = self.flags[self.stage]
         self.action = action
         self.game = game  # 规则
         self.layer = layer
-        self.all_actions = game.available_actions(state, self.turn)
+        self.all_actions = game.available_actions(state, self.turn, self.flag)
         self.tried_actions = []
         self.must_win = False
 
@@ -29,6 +36,11 @@ class Node:
         Cts = math.sqrt(2 * math.log(t) / count)
         It = win / count + alpha * Cts
         return It
+
+    @staticmethod
+    def is_full(state):
+        expanded = [x for line in state for x in line]
+        return 0 in expanded
 
     def best_child(self, alpha=1):
         biggest = (0, None)
@@ -44,15 +56,21 @@ class Node:
         untried_actions = [action for action in self.all_actions if action not in self.tried_actions]
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
-        next_state = self.game.next_state(deepcopy(self.state), action, self.turn)
+        next_state = self.game.next_state(deepcopy(self.state), action, self.turn, self.stage)
         child = Node(self, next_state, action, self.game, self.layer + 1)
         self.children.append(child)
         return child
 
     def renew(self, reward):
         self.count += 1
-        self.black_win += max(reward, 0)  # 黑色赢的话reward为1
-        self.white_win += max(-reward, 0)  # 白色赢的话reward为-1
+        self.flag = self.flags[self.stage]
+        if reward == 0.5:
+            # 平局情况
+            self.black_win += 0.5
+            self.white_win += 0.5
+        else:
+            self.black_win += max(reward, 0)  # 黑色赢的话reward为1
+            self.white_win += max(-reward, 0)  # 白色赢的话reward为-1
         if self.turn == -1:  # 父节点是轮到黑棋下
             self.win = self.black_win
         else:
@@ -61,7 +79,7 @@ class Node:
     def forward(self, max_depth):
         if type(max_depth) == int and self.layer >= max_depth:  # 超过最大深度不再搜索
             return 'max_depth'
-        end = self.game.end_game(self.state, self.turn)
+        end = self.game.end_game(self.state, self.turn, self.flag)
         if end:  # 终局情况
             reward = end
             self.must_win = True
@@ -80,14 +98,18 @@ class Node:
     def simulate(self):
         state = deepcopy(self.state)
         turn = self.turn
-        while not self.game.end_game(state, turn):
+        flag = self.flag
+        while not self.game.end_game(state, turn, flag):
+            if self.is_full(state):
+                flag = self.flags[1]
+                state[7][7] = state[8][8] = 0
             try:
-                action = random.choice(self.game.available_actions(state, turn))
+                action = random.choice(self.game.available_actions(state, turn, flag))
             except IndexError:
                 print(state, action)
             state = self.game.next_state(deepcopy(state), action, turn)
             turn = -turn
-        reward = self.game.end_game(state, turn)
+        reward = self.game.end_game(state, turn, flag)
         self.renew(reward)
         return reward  # -1 or 1
 
@@ -107,9 +129,13 @@ class RootNode(Node):
         self.children = []
         self.turn = player
         self.state = deepcopy(state)
+        self.flags = {0: "layout",
+                      1: "play"}
+        self.stage = 0
+        self.flag = self.flags[self.stage]
         self.game = game  # 规则
         self.layer = 0
-        self.all_actions = game.available_actions(state, self.turn)
+        self.all_actions = game.available_actions(state, self.turn, self.flags[0])
         self.tried_actions = []
 
 

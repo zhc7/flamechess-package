@@ -228,7 +228,7 @@ class Game(object):
                 (x, y) = action[1]
                 state1[x][y] = 0
             else:
-                (x, y) = action[0][-1]
+                (x, y) = action[0]
                 state[x][y] = me
         return state1
 

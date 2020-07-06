@@ -38,9 +38,9 @@ class Game(object):
                     if actions:
                         for action in actions:
                             if action[-1] == start:
-                                actions.append(action[0:-1] + [start, point])  # 将单一行棋合并到以初始起点为起点的行棋中
+                                actions.append(action[0:-1] + (start, point))  # 将单一行棋合并到以初始起点为起点的行棋中
                     else:  # start为初始起点时
-                        actions.append([start, point])
+                        actions.append((start, point))
                     state2 = deepcopy(state)
                     copystate = self.adjust_chessboard((start, point), state2, me)  # 编辑棋盘时复制一个新棋盘，不会瞎改原棋盘
                     jump_action(point, copystate, me)
@@ -56,17 +56,17 @@ class Game(object):
             if len(blank_indexes) == 196:  # 如果所有都是空白，那么第一步必须下棋盘中央方格的对角线两端
                 blank_indexes = [(6, 6), (6, 7), (7, 6), (7, 7)]
                 for b in blank_indexes:
-                    ret.append([b, None])
+                    ret.append((b, None))
             elif len(blank_indexes) == 0:  # 如果所有格子都已经满了，那么说明该进入提子阶段了
                 remove_indexes = []  # 可以移除的点的坐标
                 for row, col in ((6, 6), (6, 7), (7, 6), (7, 7)):
                     if state[row][col] == me:
                         remove_indexes.append((row, col))
                 for r in remove_indexes:
-                    ret.append([None, r])
+                    ret.append((None, r))
             else:
                 for b in blank_indexes:
-                    ret.append([b, None])
+                    ret.append((b, None))
             return ret
             # flag为layout时
         elif flag == 'play':
@@ -98,6 +98,7 @@ class Game(object):
                     for action in actions:
                         actions_last.append(action)
                 for action in actions_last:
+                    action=tuple(action)
                     all_actions.append(action)
             if len(mine) <= 14:
                 went = []
@@ -112,6 +113,7 @@ class Game(object):
                     product = [product, []]  # 补提子的位
                     actions = self.find_dalian(state, product, me)  # 找褡裢
                     for action in actions:
+                        action = tuple(action)
                         all_actions.append(action)
             return all_actions
 
@@ -123,7 +125,7 @@ class Game(object):
         possibilities = ((row, col + 1), (row, col - 1), (row + 1, col), (row - 1, col))
         for possibility in possibilities:
             if 13 >= possibility[0] >= 0 == state[possibility[0]][possibility[1]] and 0 <= possibility[1] <= 13:
-                actions.append([[start, possibility], []])  # 包含补位
+                actions.append([(start, possibility), []])  # 包含补位
         return actions
 
     def adjust_chessboard(self, action, state, me):
@@ -187,8 +189,10 @@ class Game(object):
                 new_action = action
                 for r in removes:
                     new_action[1].append(r)
+                new_action[1] = tuple(new_action[1])
                 new_actions.append(new_action)
             return new_actions
+        action[1] = tuple(action[1])
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 
     def points_can_jump(self, state, index, me):
@@ -224,7 +228,7 @@ class Game(object):
                 (x, y) = action[1]
                 state1[x][y] = 0
             else:
-                (x, y) = action[0]
+                (x, y) = action[0][-1]
                 state[x][y] = me
         return state1
 
@@ -234,7 +238,7 @@ class Game(object):
         if flag == "layout":
             return 0
         state = deepcopy(state)
-        if not self.available_actions(state, 'play', turn):
+        if not self.available_actions(state, turn, 'play'):
             return -turn
         chess_me = []
         chess_enemy = []
@@ -248,7 +252,7 @@ class Game(object):
                 col = index - row * 14
                 chess_enemy.append((row, col))
         if len(chess_me) <= 3:
-            actions = self.available_actions(state, 'play', turn)
+            actions = self.available_actions(state, turn, 'play')
             maximum_kill = 0
             for action in actions:
                 if len(action[1]) > maximum_kill:
@@ -276,13 +280,13 @@ if __name__ == '__main__':
 
     g = Game()
     print('以下为测试数据:')
-    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 'play', 1))
-    print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, 'play', -1))
-    action = [[(0, 0), (0, 2)], [(0, 1)]]
-    state1 = g.next_state(state, action, 'play', 1)
+    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
+    print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
+    action = (((0, 0), (0, 2)), ((0, 1),))
+    state1 = g.next_state(state, action, 1, 'play')
     print('根据输入的action,返回棋盘下一状态:', state1)
-    print('轮到棋子1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, 1))
-    print('轮到棋子-1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, -1))
+    print('轮到棋子1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, 1, 'play'))
+    print('轮到棋子-1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, -1, 'play'))
 
 """
 state

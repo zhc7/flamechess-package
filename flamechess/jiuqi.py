@@ -187,14 +187,15 @@ class Game(object):
                 col = index - row * 14
                 enemies.append((row, col))
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
-        if combinations[0] and combinations:  # 如果没有褡裢，值将为 [()] ,需排除这种情况
-            for removes in combinations:
-                new_action = deepcopy(action)
-                for r in removes:
-                    new_action[1].append(r)
-                new_action[1] = tuple(new_action[1])
-                new_actions.append(new_action)
-            return new_actions
+        if combinations:
+            if combinations[0]:
+                for removes in combinations:
+                    new_action = deepcopy(action)
+                    for r in removes:
+                        new_action[1].append(r)
+                    new_action[1] = tuple(new_action[1])
+                    new_actions.append(new_action)
+                return new_actions
         action[1] = tuple(action[1])
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 

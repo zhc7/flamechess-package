@@ -17,7 +17,7 @@ class Node:
                       1: "play"}
         if self.is_full(state):
             stage = 1
-            self.state[7][7] = self.state[8][8] = 0
+            self.state[6][6] = self.state[7][7] = 0
         self.stage = stage
         self.flag = self.flags[self.stage]
         self.action = action
@@ -40,7 +40,7 @@ class Node:
     @staticmethod
     def is_full(state):
         expanded = [x for line in state for x in line]
-        return 0 in expanded
+        return 0 not in expanded
 
     def best_child(self, alpha=1):
         biggest = (0, None)
@@ -56,7 +56,7 @@ class Node:
         untried_actions = [action for action in self.all_actions if action not in self.tried_actions]
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
-        next_state = self.game.next_state(deepcopy(self.state), action, self.turn, self.stage)
+        next_state = self.game.next_state(deepcopy(self.state), action, self.turn, self.flag)
         child = Node(self, next_state, action, self.game, self.layer + 1)
         self.children.append(child)
         return child
@@ -82,7 +82,7 @@ class Node:
         end = self.game.end_game(self.state, self.turn, self.flag)
         if end:  # 终局情况
             reward = end
-            self.must_win = True
+            self.must_win = reward != 0.5   # 如果在终局情况下没有平局就是必赢
         elif set(self.tried_actions) != set(self.all_actions):  # 没有被完全展开
             child = self.expand()
             reward = child.simulate()
@@ -102,12 +102,12 @@ class Node:
         while not self.game.end_game(state, turn, flag):
             if self.is_full(state):
                 flag = self.flags[1]
-                state[7][7] = state[8][8] = 0
+                state[6][6] = state[7][7] = 0
             try:
                 action = random.choice(self.game.available_actions(state, turn, flag))
             except IndexError:
                 print(state, action)
-            state = self.game.next_state(deepcopy(state), action, turn)
+            state = self.game.next_state(deepcopy(state), action, turn, flag)
             turn = -turn
         reward = self.game.end_game(state, turn, flag)
         self.renew(reward)
@@ -153,6 +153,7 @@ class Tree:
                 ok = False
             if self.root.count_node() > self.max_node:
                 ok = False
+        return
         best_child = self.root.best_child(alpha=0)
         for child in self.root.children:
             if child != best_child:

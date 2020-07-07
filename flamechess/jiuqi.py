@@ -189,11 +189,11 @@ class Game(object):
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
         if combinations:
             if combinations[0]:
-                action[1]=tuple(action[1])
-                action=tuple(action)
+                action[1] = tuple(action[1])
+                action = tuple(action)
                 for removes in combinations:
-                    route=action[0]
-                    kill=list(action[1])
+                    route = action[0]
+                    kill = list(action[1])
                     for r in removes:
                         kill.append(r)
                     new_actions.append((route,tuple(kill)))
@@ -202,7 +202,7 @@ class Game(object):
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 
     def points_can_jump(self, state, index, me):
-        '''输入棋子的坐标，返回元组形式的可跳的点的坐标'''
+        """输入棋子的坐标，返回元组形式的可跳的点的坐标"""
         row, col = index[0], index[1]
         judge = ((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1))
         possible = ((row - 2, col), (row + 2, col), (row, col - 2), (row, col + 2))
@@ -268,7 +268,7 @@ class Game(object):
         return 0
 
     def evaluate(self, state, turn):
-        '''评估胜率，返回一个0到1之间的数'''
+        """评估胜率，返回一个0到1之间的数"""
         me_score = 0
         enemy_score = 0
         state = deepcopy(state)

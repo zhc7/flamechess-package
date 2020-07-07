@@ -1,6 +1,6 @@
 import itertools
 from copy import deepcopy
-
+import cProfile
 
 class Game(object):
     def __init__(self):
@@ -189,12 +189,14 @@ class Game(object):
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
         if combinations:
             if combinations[0]:
+                action[1]=tuple(action[1])
+                action=tuple(action)
                 for removes in combinations:
-                    new_action = deepcopy(action)
+                    route=action[0]
+                    kill=list(action[1])
                     for r in removes:
-                        new_action[1].append(r)
-                    new_action[1] = tuple(new_action[1])
-                    new_actions.append(new_action)
+                        kill.append(r)
+                    new_actions.append((route,tuple(kill)))
                 return new_actions
         action[1] = tuple(action[1])
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
@@ -332,6 +334,7 @@ if __name__ == '__main__':
              [1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1]]
 
     print('以下为测试数据:')
+    cProfile.run("g.available_actions(state,1,'play')")
     print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
     print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
     action = (((0, 0), (0, 2)), ((0, 1),))

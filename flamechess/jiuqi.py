@@ -124,8 +124,11 @@ class Game(object):
         col = start[1]
         possibilities = ((row, col + 1), (row, col - 1), (row + 1, col), (row - 1, col))
         for possibility in possibilities:
-            if 13 >= possibility[0] >= 0 == state[possibility[0]][possibility[1]] and 0 <= possibility[1] <= 13:
-                actions.append([(start, possibility), []])  # 包含补位
+            try:
+                if 13 >= possibility[0] >= 0 == state[possibility[0]][possibility[1]] and 0 <= possibility[1] <= 13:
+                    actions.append([(start, possibility), []])  # 包含补位
+            except IndexError:
+                pass
         return actions
 
     def adjust_chessboard(self, action, state, me):
@@ -186,7 +189,7 @@ class Game(object):
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
         if combinations[0]:  # 如果没有褡裢，值将为 [()] ,需排除这种情况
             for removes in combinations:
-                new_action = action
+                new_action = deepcopy(action)
                 for r in removes:
                     new_action[1].append(r)
                 new_action[1] = tuple(new_action[1])
@@ -279,6 +282,21 @@ if __name__ == '__main__':
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     g = Game()
+    state=[[-1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1],
+    [1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1],
+    [-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, 1],
+    [1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, -1, 1, -1],
+    [1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1],
+    [-1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],
+    [1, -1, -1, -1, 1, -1, 0, 1, -1, 1, -1, -1, -1, -1],
+    [-1, 1, -1, -1, -1, -1, -1, 0, -1, -1, 1, -1, 1, -1],
+    [1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1],
+    [1, -1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
+    [-1, -1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1],
+    [-1, -1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1],
+    [-1, -1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
+    [1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1]]
+    print(g.available_actions(state,-1,'play'))
     print('以下为测试数据:')
     print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
     print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))

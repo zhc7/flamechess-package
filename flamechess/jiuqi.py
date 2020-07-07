@@ -187,7 +187,7 @@ class Game(object):
                 col = index - row * 14
                 enemies.append((row, col))
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
-        if combinations[0]:  # 如果没有褡裢，值将为 [()] ,需排除这种情况
+        if combinations[0] and combinations:  # 如果没有褡裢，值将为 [()] ,需排除这种情况
             for removes in combinations:
                 new_action = deepcopy(action)
                 for r in removes:

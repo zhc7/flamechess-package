@@ -200,7 +200,7 @@ class Game(object):
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 
     def points_can_jump(self, state, index, me):
-        '''输入棋子的坐标，返回元组形式的可跳的点的坐标'''
+        """输入棋子的坐标，返回元组形式的可跳的点的坐标"""
         row, col = index[0], index[1]
         judge = ((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1))
         possible = ((row - 2, col), (row + 2, col), (row, col - 2), (row, col + 2))

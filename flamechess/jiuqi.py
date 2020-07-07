@@ -98,7 +98,7 @@ class Game(object):
                     for action in actions:
                         actions_last.append(action)
                 for action in actions_last:
-                    action=tuple(action)
+                    action = tuple(action)
                     all_actions.append(action)
             if len(mine) <= 14:
                 went = []
@@ -263,73 +263,72 @@ class Game(object):
             if maximum_kill < len(chess_enemy) <= 3:
                 return 0.5
         return 0
-    
+
     def evaluate(self, state, turn):
         '''评估胜率，返回一个0到1之间的数'''
-        me_score=0
-        enemy_score=0
-        state=deepcopy(state)
-        len_mine=0
-        len_not_mine=0
+        me_score = 0
+        enemy_score = 0
+        state = deepcopy(state)
+        len_mine = 0
+        len_not_mine = 0
         for status in sum(state, []):
             if status == turn:
-                len_mine+=1
+                len_mine += 1
             elif status == -turn:
-                len_not_mine+=1
-        me_processed=set()
-        enemy_processed=set()
-        for x in range(0,13):
-            for y in range(0,13):
-                block=((x,y),(x+1,y),(x,y+1),(x+1,y+1))
-                mine=[]
-                not_mine=[]
+                len_not_mine += 1
+        me_processed = set()
+        enemy_processed = set()
+        for x in range(0, 13):
+            for y in range(0, 13):
+                block = ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1))
+                mine = []
+                not_mine = []
                 for dot in block:
-                    if state[dot[0]][dot[1]]==turn:
+                    if state[dot[0]][dot[1]] == turn:
                         mine.append(dot)
-                    if state[dot[0]][dot[1]]==-turn:
+                    if state[dot[0]][dot[1]] == -turn:
                         not_mine.append(dot)
-                if len(mine)==3:
-                    me_score+=3
+                if len(mine) == 3:
+                    me_score += 3
                     for m in mine:
                         me_processed.add(m)
-                elif len(mine)==4:
-                    me_score+=5
+                elif len(mine) == 4:
+                    me_score += 5
                     for m in mine:
                         me_processed.add(m)
-                if len(not_mine)==3:
-                    enemy_score+=3
+                if len(not_mine) == 3:
+                    enemy_score += 3
                     for m in not_mine:
                         enemy_processed.add(m)
-                elif len(not_mine)==4:
-                    enemy_score+=5
+                elif len(not_mine) == 4:
+                    enemy_score += 5
                     for m in not_mine:
                         enemy_processed.add(m)
-        me_score+=(len_mine-len(me_processed))
-        enemy_score+=(len_not_mine-len(enemy_processed))
+        me_score += (len_mine - len(me_processed))
+        enemy_score += (len_not_mine - len(enemy_processed))
         try:
-            ret=me_score/(me_score+enemy_score)
+            ret = me_score / (me_score + enemy_score)
         except ZeroDivisionError:
-            ret=0.5
+            ret = 0.5
         return ret
-
 
 
 if __name__ == '__main__':
     g = Game()
-    state=[[-1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1],
-    [1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1],
-    [-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, 1],
-    [1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, -1, 1, -1],
-    [1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1],
-    [-1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],
-    [1, -1, -1, -1, 1, -1, 0, 1, -1, 1, -1, -1, -1, -1],
-    [-1, 1, -1, -1, -1, -1, -1, 0, -1, -1, 1, -1, 1, -1],
-    [1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1],
-    [1, -1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
-    [-1, -1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1],
-    [-1, -1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1],
-    [-1, -1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
-    [1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1]]
+    state = [[-1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1],
+             [1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1],
+             [-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, 1],
+             [1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, -1, 1, -1],
+             [1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1],
+             [-1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],
+             [1, -1, -1, -1, 1, -1, 0, 1, -1, 1, -1, -1, -1, -1],
+             [-1, 1, -1, -1, -1, -1, -1, 0, -1, -1, 1, -1, 1, -1],
+             [1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1],
+             [1, -1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
+             [-1, -1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1],
+             [-1, -1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1],
+             [-1, -1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1],
+             [1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1]]
 
     print('以下为测试数据:')
     print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
@@ -339,8 +338,8 @@ if __name__ == '__main__':
     print('根据输入的action,返回棋盘下一状态:', state1)
     print('轮到棋子1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, 1, 'play'))
     print('轮到棋子-1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, -1, 'play'))
-    print('作为棋子1，判断胜率：',g.evaluate(state, 1))
-    print('作为棋子-1，判断胜率：',g.evaluate(state, -1))
+    print('作为棋子1，判断胜率：', g.evaluate(state, 1))
+    print('作为棋子-1，判断胜率：', g.evaluate(state, -1))
 
 """
 state

@@ -99,6 +99,8 @@ class Node:
         state = deepcopy(self.state)
         turn = self.turn
         flag = self.flag
+        step = 0
+        print("SIMULATION")
         while not self.game.end_game(state, turn, flag):
             if self.is_full(state):
                 flag = self.flags[1]
@@ -109,7 +111,15 @@ class Node:
                 print(state, action)
             state = self.game.next_state(deepcopy(state), action, turn, flag)
             turn = -turn
-        reward = self.game.end_game(state, turn, flag)
+            step += 1
+            if step >= 250:
+                reward = self.game.evaluate(state, self.turn)
+                print("break", reward)
+                break
+            if step % 100 == 0:
+                print("step", step)
+        else:
+            reward = self.game.end_game(state, turn, flag)
         self.renew(reward)
         return reward  # -1 or 1
 

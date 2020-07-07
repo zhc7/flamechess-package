@@ -215,3 +215,7 @@ def test(game, output=False):
         if game.end_game(player1.root.state, 1):
             return game.end_game(player1.root.state, 1)
         player2.update(action)
+from jiuqi import *
+game=Game()
+p1=Tree(game.initial_state,game,1,500)
+p1.search()

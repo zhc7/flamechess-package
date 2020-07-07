@@ -189,11 +189,11 @@ class Game(object):
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
         if combinations:
             if combinations[0]:
-                action[1]=tuple(action[1])
-                action=tuple(action)
+                action[1] = tuple(action[1])
+                action = tuple(action)
                 for removes in combinations:
-                    route=action[0]
-                    kill=list(action[1])
+                    route = action[0]
+                    kill = list(action[1])
                     for r in removes:
                         kill.append(r)
                     new_actions.append((route,tuple(kill)))
@@ -268,7 +268,7 @@ class Game(object):
         return 0
 
     def evaluate(self, state, turn):
-        '''评估胜率，返回一个0到1之间的数'''
+        """评估胜率，返回一个0到1之间的数"""
         me_score = 0
         enemy_score = 0
         state = deepcopy(state)

@@ -229,7 +229,7 @@ class Game(object):
                 state1[x][y] = 0
             else:
                 (x, y) = action[0]
-                state[x][y] = me
+                state1[x][y] = me
         return state1
 
     def end_game(self, state, turn, flag):

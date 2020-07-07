@@ -57,7 +57,7 @@ class Node:
         action = random.choice(untried_actions)
         self.tried_actions.append(action)
         next_state = self.game.next_state(deepcopy(self.state), action, self.turn, self.flag)
-        child = Node(self, next_state, action, self.game, self.layer + 1)
+        child = Node(self, next_state, action, self.game, self.layer + 1, self.stage)
         self.children.append(child)
         return child
 
@@ -215,7 +215,3 @@ def test(game, output=False):
         if game.end_game(player1.root.state, 1):
             return game.end_game(player1.root.state, 1)
         player2.update(action)
-from jiuqi import *
-game=Game()
-p1=Tree(game.initial_state,game,1,500)
-p1.search()

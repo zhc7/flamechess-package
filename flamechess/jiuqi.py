@@ -41,9 +41,14 @@ class Game(object):
                                 actions.append(action[0:-1] + (start, point))  # 将单一行棋合并到以初始起点为起点的行棋中
                     else:  # start为初始起点时
                         actions.append((start, point))
-                    state2 = deepcopy(state)
-                    copystate = self.adjust_chessboard((start, point), state2, me)  # 编辑棋盘时复制一个新棋盘，不会瞎改原棋盘
-                    jump_action(point, copystate, me)
+                    state = self.adjust_chessboard((start, point), state, me)  # 编辑棋盘时复制一个新棋盘，不会瞎改原棋盘
+                    jump_action(point, state, me)
+                    state[point[0]][point[1]] = 0
+                    state[start[0]][start[1]] = me
+                    remove_x=int((start[0]+point[0])/2)
+                    remove_y=int((start[1]+point[1])/2)
+                    state[remove_x][remove_y] = -me
+
 
         if flag == 'layout':  # 布棋阶段
             ret = []
@@ -133,14 +138,13 @@ class Game(object):
 
     def adjust_chessboard(self, action, state, me):
         '''根据单步跳棋调整棋盘，返回新棋盘'''
-        state1 = state  # 复制新棋盘
         start = action[0]
         end = action[1]
         remove = (int((start[0] + end[0]) / 2), int((start[1] + end[1]) / 2))
-        state1[start[0]][start[1]] = 0
-        state1[end[0]][end[1]] = me
-        state1[remove[0]][remove[1]] = 0
-        return state1
+        state[start[0]][start[1]] = 0
+        state[end[0]][end[1]] = me
+        state[remove[0]][remove[1]] = 0
+        return state
 
     def action_process(self, action):
         """将只包含跳棋路线的步骤变为包含必提子的步骤"""
@@ -189,11 +193,11 @@ class Game(object):
         combinations = list(itertools.combinations(enemies, n))  # 排列组合
         if combinations:
             if combinations[0]:
-                action[1] = tuple(action[1])
-                action = tuple(action)
+                action[1]=tuple(action[1])
+                action=tuple(action)
                 for removes in combinations:
-                    route = action[0]
-                    kill = list(action[1])
+                    route=action[0]
+                    kill=list(action[1])
                     for r in removes:
                         kill.append(r)
                     new_actions.append((route,tuple(kill)))
@@ -202,7 +206,7 @@ class Game(object):
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 
     def points_can_jump(self, state, index, me):
-        """输入棋子的坐标，返回元组形式的可跳的点的坐标"""
+        '''输入棋子的坐标，返回元组形式的可跳的点的坐标'''
         row, col = index[0], index[1]
         judge = ((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1))
         possible = ((row - 2, col), (row + 2, col), (row, col - 2), (row, col + 2))
@@ -268,7 +272,7 @@ class Game(object):
         return 0
 
     def evaluate(self, state, turn):
-        """评估胜率，返回一个0到1之间的数"""
+        '''评估胜率，返回一个0到1之间的数'''
         me_score = 0
         enemy_score = 0
         state = deepcopy(state)
@@ -318,9 +322,9 @@ class Game(object):
 
 if __name__ == '__main__':
     g = Game()
-    state = [[-1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1],
+    state = [[-1, 1, 0, 1, 0, 1, 0, 1, 1, -1, -1, -1, -1, -1],
              [1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1],
-             [-1, 1, -1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, 1],
+             [-1, 1, -1, 1, -1, 1, 0, -1, 1, -1, -1, -1, 1, 1],
              [1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, -1, 1, -1],
              [1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1],
              [-1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],

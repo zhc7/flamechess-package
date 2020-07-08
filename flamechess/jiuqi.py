@@ -91,8 +91,7 @@ class Game(object):
                 actions = []
                 actions_first_processed = []  # 第一次处理（不包括褡裢）
                 actions_last = []  # 最后版本（考虑褡裢）
-                state1 = deepcopy(state)
-                jump_action(one, state1, me)  # 就地修改actions,加入所有跳棋步骤（不包括所有提子）
+                jump_action(one, state, me)  # 就地修改actions,加入所有跳棋步骤（不包括所有提子）
                 for a in actions:
                     actions_first_processed.append(self.action_process(a))  # 将跳棋步骤加入跳提子
                 walks = self.go_around(one, state)  # 四周走棋
@@ -163,12 +162,11 @@ class Game(object):
         remove = action[1]  # 这里即便不是跳棋，没有提子也必须补位
         start = action[0][0]
         end = action[0][-1]
-        row, col = end[0], end[1]  # 获取终止点的行列
-        state1 = deepcopy(state)
-        state1[start[0]][start[1]] = 0
-        state1[row][col] = me
+        state[start[0]][start[1]] = 0
+        state[end[0]][end[1]] = me
+        row,col=end[0],end[1]
         for r in remove:
-            state1[r[0]][r[1]] = 0
+            state[r[0]][r[1]] = 0
         blocks = (((row, col), (row + 1, col), (row + 1, col + 1), (row, col + 1)),
                   ((row, col), (row + 1, col), (row + 1, col - 1), (row, col - 1)),
                   ((row, col), (row - 1, col), (row - 1, col - 1), (row, col - 1)),
@@ -177,15 +175,15 @@ class Game(object):
             try:
                 judge = True
                 for index in block:
-                    row, col = index[0], index[1]
-                    if state1[row][col] == 0 or state1[row][col] != me:
+                    r, c = index[0], index[1]
+                    if state[r][c] == 0 or state[r][c] != me:
                         judge = False
                 if judge:
                     n += 1
             except:  # 解决四个块中可能有坐标越界问题
                 pass
         enemies = []  # 敌方棋子坐标（可提）
-        for index, status in enumerate(sum(state1, [])):
+        for index, status in enumerate(sum(state, [])):
             if status != me and status != 0:
                 row = index // 14
                 col = index - row * 14
@@ -201,8 +199,16 @@ class Game(object):
                     for r in removes:
                         kill.append(r)
                     new_actions.append((route,tuple(kill)))
+                state[start[0]][start[1]] = me
+                state[end[0]][end[1]] = 0
+                for r in remove:
+                    state[r[0]][r[1]] = -me
                 return new_actions
         action[1] = tuple(action[1])
+        state[start[0]][start[1]] = me
+        state[end[0]][end[1]] = 0
+        for r in remove:
+            state[r[0]][r[1]] = -me
         return [action]  # 若无褡裢，为了返回值的统一性，再外包一层列表
 
     def points_can_jump(self, state, index, me):
@@ -247,7 +253,6 @@ class Game(object):
         若胜负已定则回复棋子代号：1/-1, 若平局则回0.5, 若胜负未定则回0"""
         if flag == "layout":
             return 0
-        state = deepcopy(state)
         if not self.available_actions(state, turn, 'play'):
             return -turn
         chess_me = []
@@ -275,7 +280,6 @@ class Game(object):
         '''评估胜率，返回一个0到1之间的数'''
         me_score = 0
         enemy_score = 0
-        state = deepcopy(state)
         len_mine = 0
         len_not_mine = 0
         for status in sum(state, []):
@@ -339,7 +343,7 @@ if __name__ == '__main__':
 
     print('以下为测试数据:')
     cProfile.run("g.available_actions(state,1,'play')")
-    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
+    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
     print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
     action = (((0, 0), (0, 2)), ((0, 1),))
     state1 = g.next_state(state, action, 1, 'play')

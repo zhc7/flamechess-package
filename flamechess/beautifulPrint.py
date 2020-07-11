@@ -4,8 +4,8 @@ sysprint = print
 
 def beautifulPrint(state, action):
     printC = sys.stdout.shell.write
-    route = sum(action[0], ())
-    eat = sum(action[1], ())
+    route = action[0]
+    eat = action[1]
     for x in range(len(state)):
         row = state[x]
         for y in range(len(row)):

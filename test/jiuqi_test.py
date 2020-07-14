@@ -384,9 +384,9 @@ class MyTestCase(unittest.TestCase):
         even[2][3], even[3][5] = 1, 1
         even[9][8] = -1
         win = [[0 for x in range(14)] for i in range(14)]
-        win[3][3] = 1
+        win[3][3] = -1
         args = [[self.s1, 1, "play"], [even, -1, "play"], [self.s3, -1, "play"], [win, -1, "play"]]
-        answers = [0, 0.5, 0, 1]
+        answers = [0, 0.5, 0, -1]
         for arg, answer in zip(args, answers):
             self.assertEqual(self.game.end_game(*arg), answer)
 

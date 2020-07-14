@@ -266,6 +266,8 @@ class Game(object):
                 row = index // 14
                 col = index - row * 14
                 chess_enemy.append((row, col))
+        if chess_me and (not chess_enemy):
+            return turn
         if len(chess_me) <= 3:
             actions = self.available_actions(state, turn, 'play')
             maximum_kill = 0

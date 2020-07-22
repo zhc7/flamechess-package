@@ -37,7 +37,7 @@ def log_parser(logFile):
     state = []
     for line in log:
         if not line or line[:2] not in ["O ", "X ", "- "]:
-            if line[0] == '(':
+            if line and line[0] == '(':
                 actions.append(line)
             if state:
                 states.append(state)

@@ -183,11 +183,6 @@ class Game(object):
             except:  # 解决四个块中可能有坐标越界问题
                 pass
         enemies = set()  # 敌方棋子坐标（可提）
-        for index, status in enumerate(sum(state, [])):
-            if status != me and status != 0:
-                row = index // 14
-                col = index - row * 14
-                enemies.add((row, col))
         enemies_in_dalian=set()
         for x in range(0, 13):
             for y in range(0, 13):
@@ -196,6 +191,7 @@ class Game(object):
                 for dot in block:
                     (r,c)=dot
                     if state[r][c] == -me:
+                        enemies.add(dot)
                         len_enemy+=1
                 if len_enemy == 4:
                     for dot in block:

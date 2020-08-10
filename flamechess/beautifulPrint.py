@@ -30,7 +30,7 @@ def log_parser(logFile):
     try:
         with open(logFile) as f:
             log = f.readlines()
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         log = logFile.split('\n')
     states = []
     actions = []

@@ -3,4 +3,4 @@
 	url = https://github.com/ChessTerm/flamechess-java
 [submodule "alphaZero"]
 	path = alphaZero
-	url = ""
+	url = https://github.com/zhc7/alphaZero.git

@@ -11,8 +11,8 @@ class Game(object):
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -59,16 +59,19 @@ class Game(object):
                     col = index - row * 14
                     blank_indexes.append((row, col))
             if len(blank_indexes) == 196:  # 如果所有都是空白，那么第一步必须下棋盘中央方格的对角线两端
-                blank_indexes = [(6, 6), (6, 7), (7, 6), (7, 7)]
-                for b in blank_indexes:
-                    ret.append((b, None))
-            elif len(blank_indexes) == 0:  # 如果所有格子都已经满了，那么说明该进入提子阶段了
-                remove_indexes = []  # 可以移除的点的坐标
-                for row, col in ((6, 6), (6, 7), (7, 6), (7, 7)):
-                    if state[row][col] == me:
-                        remove_indexes.append((row, col))
-                for r in remove_indexes:
-                    ret.append((None, r))
+                ret.append(((6,7),None))
+                ret.append(((7,6),None))
+            elif len(blank_indexes) == 195:  #如果有一个不是空白，说明对手已经下在了(6,7)或(7,6)上，此时必须下在对角线另一侧
+                if state[6][7] == 0:
+                    ret.append(((6,7),None))
+                elif state[7][6] == 0:
+                    ret.append(((7,6),None))
+            elif len(blank_indexes) == 0 or \
+                (len(blank_indexes) == 1 and (not(state[6][7] and state[7][6]))):  # 如果所有格子都已经满了或刚被提一个，那么说明该进入提子阶段了
+                if state[6][7] == -me:
+                    ret.append((None,(6,7)))
+                elif state[7][6] == -me:
+                    ret.append((None,(7,6)))
             else:
                 for b in blank_indexes:
                     ret.append((b, None))
@@ -76,12 +79,17 @@ class Game(object):
             # flag为layout时
         elif flag == 'play':
             mine = []
+            enemies=[]
             blanks = []
             for index, status in enumerate(sum(state, [])):
                 if status == me:
                     row = index // 14
                     col = index - row * 14
                     mine.append((row, col))
+                elif status == -me:
+                    row = index // 14
+                    col = index - row * 14
+                    enemies.append((row, col))
                 elif status == 0:
                     row = index // 14
                     col = index - row * 14
@@ -93,7 +101,11 @@ class Game(object):
                 actions_last = []  # 最后版本（考虑褡裢）
                 jump_action(one, state, me)  # 就地修改actions,加入所有跳棋步骤（不包括所有提子）
                 for a in actions:
-                    actions_first_processed.append(self.action_process(a))  # 将跳棋步骤加入跳提子
+                    if len(mine)>14 and 3 < len(enemies) <= 14:
+                        if len(a) >=3:
+                            actions_first_processed.append(self.action_process(a))  # 将跳提子加入跳棋步骤
+                    else:
+                        actions_first_processed.append(self.action_process(a))
                 walks = self.go_around(one, state)  # 四周走棋
                 for walk in walks:
                     actions_first_processed.append(walk)  # 四周走棋无需进行跳棋步骤的第一遍处理
@@ -183,11 +195,6 @@ class Game(object):
             except:  # 解决四个块中可能有坐标越界问题
                 pass
         enemies = set()  # 敌方棋子坐标（可提）
-        for index, status in enumerate(sum(state, [])):
-            if status != me and status != 0:
-                row = index // 14
-                col = index - row * 14
-                enemies.add((row, col))
         enemies_in_dalian=set()
         for x in range(0, 13):
             for y in range(0, 13):
@@ -196,6 +203,7 @@ class Game(object):
                 for dot in block:
                     (r,c)=dot
                     if state[r][c] == -me:
+                        enemies.add(dot)
                         len_enemy+=1
                 if len_enemy == 4:
                     for dot in block:
@@ -341,20 +349,20 @@ class Game(object):
 
 if __name__ == '__main__':
     g = Game()
-    state=[[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-           [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, -1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, -1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    state=[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, -1, -1, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0]]
     print('以下为测试数据:')
     cProfile.run("g.available_actions(state,1,'play')")
     print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))

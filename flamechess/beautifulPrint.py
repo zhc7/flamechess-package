@@ -28,22 +28,23 @@ def beautifulPrint(state, action):
 
 def log_parser(logFile):
     try:
-        with open(logFile) as f:
+        with open(logFile, encoding="utf-8") as f:
             log = f.readlines()
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         log = logFile.split('\n')
     states = []
     actions = []
     state = []
     for line in log:
-        if not line or line[:2] not in ["O ", "X ", "- "]:
-            if line[0] == '(':
-                actions.append(line)
+        if not line or line[2:4] not in ["O ", "X ", "- "]:
+            if line and line[:9] == 'Actions: ':
+                actions.append(line[9:])
             if state:
                 states.append(state)
             state = []
             continue
         row = []
+        line = line[2:]
         for item in line.split(' '):
             item = item.strip()
             if not item:
@@ -67,7 +68,7 @@ def differencePrinter(states, actions=None):
                 col = row[y]
                 last_col = last_row[y]
                 if col != last_col:
-                    printC({1:'O', -1:'X', 0:'-'}[col] + " ", "KEYWORD")
+                    printC({1:'O', -1:'X', 0:'#'}[col] + " ", "KEYWORD")
                 else:
                     printC({1: 'O', -1: 'X', 0: '-'}[col] + " ")
             print()
@@ -77,5 +78,6 @@ def differencePrinter(states, actions=None):
         input()
 
 
-
+if __name__ == '__main__':
+    differencePrinter(*log_parser("../alphaZero/log.txt"))
 

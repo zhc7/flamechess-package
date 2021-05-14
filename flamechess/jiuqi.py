@@ -11,8 +11,8 @@ class Game(object):
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -59,16 +59,19 @@ class Game(object):
                     col = index - row * 14
                     blank_indexes.append((row, col))
             if len(blank_indexes) == 196:  # 如果所有都是空白，那么第一步必须下棋盘中央方格的对角线两端
-                blank_indexes = [(6, 6), (6, 7), (7, 6), (7, 7)]
-                for b in blank_indexes:
-                    ret.append((b, None))
-            elif len(blank_indexes) == 0:  # 如果所有格子都已经满了，那么说明该进入提子阶段了
-                remove_indexes = []  # 可以移除的点的坐标
-                for row, col in ((6, 6), (6, 7), (7, 6), (7, 7)):
-                    if state[row][col] == me:
-                        remove_indexes.append((row, col))
-                for r in remove_indexes:
-                    ret.append((None, r))
+                ret.append(((6,6),None))
+                ret.append(((7,7),None))
+            elif len(blank_indexes) == 195:  #如果有一个不是空白，说明对手已经下在了(6,7)或(7,6)上，此时必须下在对角线另一侧
+                if state[6][6] == 0:
+                    ret.append(((6,6),None))
+                elif state[7][7] == 0:
+                    ret.append(((7,7),None))
+            elif len(blank_indexes) == 0 or \
+                (len(blank_indexes) == 1 and (not(state[6][6] and state[7][7]))):  # 如果所有格子都已经满了或刚被提一个，那么说明该进入提子阶段了
+                if state[6][6] == -me:
+                    ret.append((None,(6,6)))
+                elif state[7][7] == -me:
+                    ret.append((None,(7,7)))
             else:
                 for b in blank_indexes:
                     ret.append((b, None))
@@ -76,12 +79,17 @@ class Game(object):
             # flag为layout时
         elif flag == 'play':
             mine = []
+            enemies=[]
             blanks = []
             for index, status in enumerate(sum(state, [])):
                 if status == me:
                     row = index // 14
                     col = index - row * 14
                     mine.append((row, col))
+                elif status == -me:
+                    row = index // 14
+                    col = index - row * 14
+                    enemies.append((row, col))
                 elif status == 0:
                     row = index // 14
                     col = index - row * 14
@@ -93,7 +101,11 @@ class Game(object):
                 actions_last = []  # 最后版本（考虑褡裢）
                 jump_action(one, state, me)  # 就地修改actions,加入所有跳棋步骤（不包括所有提子）
                 for a in actions:
-                    actions_first_processed.append(self.action_process(a))  # 将跳棋步骤加入跳提子
+                    if len(mine)>14 and 3 < len(enemies) <= 14:
+                        if len(a) >=3:
+                            actions_first_processed.append(self.action_process(a))  # 将跳提子加入跳棋步骤
+                    else:
+                        actions_first_processed.append(self.action_process(a))
                 walks = self.go_around(one, state)  # 四周走棋
                 for walk in walks:
                     actions_first_processed.append(walk)  # 四周走棋无需进行跳棋步骤的第一遍处理
@@ -184,7 +196,7 @@ class Game(object):
                 pass
         enemies = []  # 敌方棋子坐标（可提）
         for index, status in enumerate(sum(state, [])):
-            if status != me and status != 0:
+            if status == -me:
                 row = index // 14
                 col = index - row * 14
                 enemies.append((row, col))
@@ -324,43 +336,191 @@ class Game(object):
         except ZeroDivisionError:
             ret = 0.5
         return ret
+    
+    def evaluate_in_ending_part(self, state, turn):
+        len_me = 0
+        len_enemy = 0
+        for status in sum(state, []):
+            if status == turn:
+                len_me += 1
+            elif status == -turn:
+                len_enemy += 1
+        processed_me = set()
+        processed_enemy = set()
+        len_double_dalian_me=0
+        len_triangle_me=0
+        len_double_dalian_enemy=0
+        len_triangle_enemy=0
+        for x in range(12):
+            for y in range(11):
+                double_dalian_1 = ((x,y),(x,y+1),
+                                    (x+1,y),(x+1,y+3),
+                                    (x+2,y+2),(x+2,y+3))
+                double_dalian_2 = ((x,y+2),(x,y+3),
+                                    (x+1,y),(x+1,y+3),
+                                    (x+2,y),(x+2,y+1))
+                judge_1 = True
+                judge_2 = True
+                for point in double_dalian_1:
+                    if state[point[0]][point[1]] != turn:
+                        judge_1 = False
+                for point in double_dalian_2:
+                    if state[point[0]][point[1]] != turn:
+                        judge_2 = False
+                if not ((state[x+1][y+1] == turn and state[x+1][y+2] == 0) or (state[x+1][y+1] == 0 and state[x+1][y+2] == turn)):
+                    judge_1 = False
+                    judge_2 = False
+                if judge_1 and judge_2:
+                    for point in double_dalian_1:
+                        processed_me.add(point)
+                    for point in double_dalian_2:
+                        processed_me.add(point)
+                    len_double_dalian_me+=1
+                elif judge_1:
+                    for point in double_dalian_1:
+                        processed_me.add(point)
+                    len_double_dalian_me+=1
+                elif judge_2:
+                    for point in double_dalian_2:
+                        processed_me.add(point)
+                    len_double_dalian_me+=1
+        for x in range(13):
+            for y in range(11):
+                double_dalian_1 = ((x,y),(x,y+3),
+                                (x+1,y),(x+1,y+1),(x+1,y+2),(x+1,y+3))
+                double_dalian_2 = ((x,y),(x,y+1),(x,y+2),(x,y+3),
+                                (x+1,y),(x+1,y+3))
+                judge_1 = True
+                judge_2 = True
+                for point in double_dalian_1:
+                    if state[point[0]][point[1]] != turn or (point in processed_me):
+                        judge_1 = False
+                for point in double_dalian_2:
+                    if state[point[0]][point[1]] != turn or (point in processed_me):
+                        judge_2 = False
+                if not ((state[x+1][y+1] == turn and state[x+1][y+2] == 0 and (not ((x+1,y+1) in processed_me))) or (state[x+1][y+1] == 0 and state[x+1][y+2] == turn and (not ((x+1,y+2) in processed_me)))):
+                    judge_1 = False
+                    judge_2 = False
+                if judge_1:
+                    for point in double_dalian_1:
+                        processed_me.add(point)
+                    len_double_dalian_me+=1
+                elif judge_2:
+                    for point in double_dalian_2:
+                        processed_me.add(point)
+                    len_double_dalian_me+=1
+        #下面又复制了一遍上面的代码，把turn都改成了-turn，计算敌方双褡裢个数
+        for x in range(12):
+            for y in range(11):
+                double_dalian_1 = ((x,y),(x,y+1),
+                                    (x+1,y),(x+1,y+3),
+                                    (x+2,y+2),(x+2,y+3))
+                double_dalian_2 = ((x,y+2),(x,y+3),
+                                    (x+1,y),(x+1,y+3),
+                                    (x+2,y),(x+2,y+1))
+                judge_1 = True
+                judge_2 = True
+                for point in double_dalian_1:
+                    if state[point[0]][point[1]] != -turn:
+                        judge_1 = False
+                for point in double_dalian_2:
+                    if state[point[0]][point[1]] != -turn:
+                        judge_2 = False
+                if not ((state[x+1][y+1] == -turn and state[x+1][y+2] == 0) or (state[x+1][y+1] == 0 and state[x+1][y+2] == -turn)):
+                    judge_1 = False
+                    judge_2 = False
+                if judge_1 and judge_2:
+                    for point in double_dalian_1:
+                        processed_enemy.add(point)
+                    for point in double_dalian_2:
+                        processed_enemy.add(point)
+                    len_double_dalian_enemy += 1
+                elif judge_1:
+                    for point in double_dalian_1:
+                        processed_enemy.add(point)
+                    len_double_dalian_enemy += 1
+                elif judge_2:
+                    for point in double_dalian_2:
+                        processed_enemy.add(point)
+                    len_double_dalian_enemy += 1
+        for x in range(13):
+            for y in range(11):
+                double_dalian_1 = ((x,y),(x,y+3),
+                                (x+1,y),(x+1,y+1),(x+1,y+2),(x+1,y+3))
+                double_dalian_2 = ((x,y),(x,y+1),(x,y+2),(x,y+3),
+                                (x+1,y),(x+1,y+3))
+                judge_1 = True
+                judge_2 = True
+                for point in double_dalian_1:
+                    if state[point[0]][point[1]] != -turn or (point in processed_enemy):
+                        judge_1 = False
+                for point in double_dalian_2:
+                    if state[point[0]][point[1]] != -turn or (point in processed_enemy):
+                        judge_2 = False
+                if not ((state[x+1][y+1] == -turn and state[x+1][y+2] == 0 and (not ((x+1,y+1) in processed_enemy))) or (state[x+1][y+1] == 0 and state[x+1][y+2] == -turn and (not ((x+1,y+2) in processed_enemy)))):
+                    judge_1 = False
+                    judge_2 = False
+                if judge_1:
+                    for point in double_dalian_1:
+                        processed_enemy.add(point)
+                    len_double_dalian_enemy += 1
+                elif judge_2:
+                    for point in double_dalian_2:
+                        processed_enemy.add(point)
+                    len_double_dalian_enemy += 1
+        for x in range(13):
+            for y in range(13):
+                block=((x,y),(x,y+1),(x+1,y),(x+1,y+1))
+                blank = 0
+                me = []
+                enemy = []
+                for point in block:
+                    if state[point[0]][point[1]] == turn:
+                        me.append(point)
+                    elif state[point[0]][point[1]] == -turn:
+                        enemy.append(point)
+                    else:
+                        blank += 1
+                if len(me) == 3 and blank == 1:
+                    len_triangle_me += 1
+                    for p in me:
+                        processed_me.add(p)
+                elif len(enemy) == 3 and blank == 1:
+                    len_triangle_enemy += 1
+                    for p in enemy:
+                        processed_enemy.add(p)
+        if len_me > 14 and len_enemy <= 14:
+            ret = (len_double_dalian_me*4 + len_me - len(processed_me)) / (len_double_dalian_me*4 + len_triangle_enemy*4 + len_me + len_enemy - len(processed_me) - len(processed_enemy))
+        elif len_me <= 14 and len_enemy > 14:
+            ret = (len_triangle_me*4 + len_me - len(processed_me)) / (len_double_dalian_enemy*4 + len_enemy + len_triangle_me*4 + len_me - len(processed_me) - len(processed_enemy))
+        return ret
 
 
 if __name__ == '__main__':
     g = Game()
-    state1 = [[1, 1, 0, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1],
-                   [1, 1, 0, 0, -1, 1, 1, 0, 0, -1, -1, 1, -1, -1],
-                   [1, 0, 0, -1, 0, -1, 1, 1, -1, -1, -1, -1, 0, 1],
-                   [1, -1, 1, 0, 0, 1, 1, 0, -1, 0, -1, 1, 0, -1],
-                   [1, 1, 0, 1, -1, 0, -1, -1, 0, -1, -1, -1, 0, 0],
-                   [1, 1, 0, 1, 1, 1, -1, 0, 0, -1, 0, 0, -1, 0],
-                   [1, 0, 0, 0, -1, 0, -1, 1, 1, -1, 0, -1, -1, -1],
-                   [-1, 0, 1, 0, 0, 1, 0, 0, 1, -1, 0, 1, 0, 0],
-                   [1, 1, 0, 1, 1, 1, -1, 0, 1, 0, 0, -1, -1, -1],
-                   [1, 1, 0, 1, 0, 1, -1, 0, 1, 0, 0, 0, 0, -1],
-                   [0, 0, -1, 0, 0, -1, -1, 0, 0, -1, -1, 1, 0, -1],
-                   [-1, 0, -1, 0, -1, 0, -1, 1, 0, 1, -1, 0, -1, 0],
-                   [-1, -1, 1, 0, -1, 0, 1, 1, -1, 0, 1, 1, -1, -1],
-                   [-1, 1, -1, -1, 0, 0, 1, 0, -1, 0, -1, 0, 1, 0]]
-    state2 = [[-1, 0, 1, -1, -1, -1, 1, 0, 1, -1, 0, -1, -1, 0], [-1, -1, -1, 1, 0, -1, -1, -1, 1, 1, 1, 1, 0, 1],
-                   [1, -1, -1, 1, 0, 1, -1, -1, -1, 1, 1, -1, 1, 0], [-1, -1, 0, 1, -1, 1, 0, 0, 0, 0, -1, 0, 1, -1],
-                   [0, -1, 1, 1, 0, -1, 0, -1, 0, 1, -1, -1, -1, 1], [-1, 0, -1, 0, 0, -1, 1, 1, 1, 0, 0, 0, -1, 1],
-                   [-1, 0, 1, 0, 0, 1, 1, 0, -1, -1, 1, 1, 1, 0], [-1, 1, 0, -1, -1, -1, 1, -1, -1, 0, 1, 0, -1, -1],
-                   [-1, 0, 0, 0, 1, -1, 0, -1, -1, -1, 0, 0, 0, 1], [-1, 1, 1, 1, -1, 1, -1, -1, 0, 1, 0, 1, -1, 1],
-                   [1, -1, 1, 1, -1, 1, 0, 1, -1, 0, 0, 0, 1, 0], [1, 1, -1, -1, -1, -1, 0, -1, 0, 1, 0, -1, -1, 0],
-                   [0, -1, 1, 0, -1, -1, 0, 1, 1, -1, 0, 1, 1, 0], [1, 0, -1, 0, -1, 1, 1, -1, 0, -1, 1, -1, -1, 0]]
-    state3 = [[0, 0, 0, 0, 0, 1, -1, 1, -1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-    print(g.next_state(state3, (((0, 0), (0, 2)), ((0, 1),)), 1, "play"))
-"""
+    state=[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [-1, -1, -1, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0]]
     print('以下为测试数据:')
     cProfile.run("g.available_actions(state,1,'play')")
-    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
+    text=str(g.available_actions(state, -1, 'play'))
+    a=open('m.txt','w')
+    a.write(text)
+    a.close()
+    print('作为棋子1，返回此时（对方进入飞子阶段）的胜率：',g.evaluate_in_ending_part(state, 1))
+    print('作为棋子1，返回所有可行步骤：', g.available_actions(state, 1, 'play'))
+    """
     print('作为棋子-1，返回所有可行步骤：', g.available_actions(state, -1, 'play'))
     action = (((0, 0), (0, 2)), ((0, 1),))
     state1 = g.next_state(state, action, 1, 'play')
@@ -368,8 +528,8 @@ if __name__ == '__main__':
     print('轮到棋子1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, 1, 'play'))
     print('轮到棋子-1下棋，判断棋局胜负是否已分，谁胜谁负：', g.end_game(state, -1, 'play'))
     print('作为棋子1，判断胜率：', g.evaluate(state, 1))
-    print('作为棋子-1，判断胜率：', g.evaluate(state, -1))
-"""
+    print('作为棋子-1，判断胜率：', g.evaluate(state, -1))"""
+
 """
 state
 type:list list[list[number]]] 14*14

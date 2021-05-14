@@ -2,8 +2,11 @@ import socketio
 import time
 
 
+domain = "chess.cslab.top"
+
+
 class Client(socketio.Client):
-    def __init__(self, gameId, userId, url="https://chessterm.tech:8512"):
+    def __init__(self, gameId, userId, url=f"https://{domain}:8512"):
         super(Client, self).__init__()
         self.gameId = gameId
         self.userId = userId
@@ -18,7 +21,7 @@ class Client(socketio.Client):
 
     def on_connect(self):
         self.emit("login", {
-            "backend": "https://chessterm.tech",
+            "backend": f"https://{domain}",
             "userId": self.userId,
             "gameId": self.gameId
         })

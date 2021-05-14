@@ -127,6 +127,8 @@ class Tree:
                 ok = False
             if self.root.count_node() > self.max_node:
                 ok = False
+            if self.root.count > self.max_node:
+                ok = False
         best_child = self.root.best_child(alpha=0)
         for child in self.root.children:
             if child != best_child:

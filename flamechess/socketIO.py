@@ -3,7 +3,7 @@ import time
 
 
 class Client(socketio.Client):
-    def __init__(self, gameId, userId, url="https://chessterm.tech:8512"):
+    def __init__(self, gameId, userId, url="https://chess.cslab.top:8512"):
         super(Client, self).__init__()
         self.gameId = gameId
         self.userId = userId
@@ -18,7 +18,7 @@ class Client(socketio.Client):
 
     def on_connect(self):
         self.emit("login", {
-            "backend": "https://chessterm.tech",
+            "backend": "https://chess.cslab.top",
             "userId": self.userId,
             "gameId": self.gameId
         })
@@ -44,7 +44,7 @@ class Client(socketio.Client):
 
 
 if __name__ == '__main__':
-    client = Client('1002', '10170101')
+    client = Client('1000', '10170101')
     last_board = client.get_data()
     print(last_board)
     client.set_data('000000ZZZ0000000zzz000000')
